@@ -1,0 +1,230 @@
+Company
+Company
+ ├── company_id
+ ├── name
+ ├── industry
+ ├── company_type
+ ├── location
+ ├── verification_status
+ ├── sustainability_score
+ └── contact_details
+
+company_type:
+
+EMITTER
+CO2_BUYER
+LOGISTICS_PROVIDER
+REGULATOR
+ADMIN
+
+
+
+-------------------------
+CO₂ Supply
+
+CO2Supply
+ ├── supply_id
+ ├── emitter_id
+ ├── available_quantity
+ ├── quantity_unit
+ ├── purity_percentage
+ ├── physical_state
+ ├── temperature
+ ├── pressure
+ ├── capture_method
+ ├── source_industry
+ ├── location
+ ├── availability_start
+ ├── availability_end
+ ├── minimum_order
+ ├── asking_price
+ ├── certification
+ └── status
+
+-------------------------
+
+3. CO₂ demand marketplace
+
+CO₂ buyers shouldn't just search manually.
+
+They should create a demand request.
+
+DemandRequest
+ ├── request_id
+ ├── buyer_id
+ ├── required_quantity
+ ├── required_purity
+ ├── application
+ ├── max_price
+ ├── required_location
+ ├── delivery_deadline
+ └── status
+
+--------------------------
+
+4. Intelligent CO₂ matching engine
+Match based on:
+
+Match Score =
+    Purity compatibility
+  + Quantity compatibility
+  + Distance
+  + Price
+  + Availability
+  + Delivery reliability
+  + Certification
+  + Carbon intensity
+
+----------------------------
+7. Logistics engine
+
+Once buyer and seller agree:
+
+Supplier
+    ↓
+Logistics Provider
+    ↓
+Buyer
+
+The backend creates a shipment.
+
+Shipment
+ ├── shipment_id
+ ├── supplier_id
+ ├── buyer_id
+ ├── logistics_provider
+ ├── quantity
+ ├── pickup_location
+ ├── destination
+ ├── route
+ ├── estimated_distance
+ ├── transportation_cost
+ ├── estimated_delivery
+ └── status
+
+Statuses:
+
+MATCHED
+BOOKED
+PICKED_UP
+IN_TRANSIT
+DELIVERED
+VERIFIED
+
+-------------------------
+9. Dynamic pricing engineYou could support:
+
+BUY NOW
+REQUEST QUOTE
+BID
+NEGOTIATE
+LONG-TERM CONTRACT
+
+This makes it feel like a real B2B marketplace.
+
+
+-----------------
+10. Long-term contracts
+
+Companies don't always want one-time purchases.
+
+
+-------------------------
+11. Verification and trust layer
+
+Very important for a corporate platform.
+
+certificate
+lab report
+capture technology
+audit history
+purity test
+emission source
+
+-------------------------------------
+14. AI recommendation engine
+
+This is a great place to add AI without forcing AI into everything.
+
+--------------------------------
+
+7. Supplier dashboard backend
+
+Backend provides APIs for:
+
+Total CO₂ captured
+Total CO₂ sold
+Revenue
+Unused capacity
+Active contracts
+Pending requests
+Average selling price
+Utilization percentage
+
+Example:
+
+Captured       4,500 tons
+Sold           3,700 tons
+Unused           800 tons
+Revenue      ₹1.57 Cr
+Buyers              12
+
+18. Buyer dashboard
+
+Buyer sees:
+
+CO₂ required
+Current suppliers
+Average price
+Active contracts
+Upcoming deliveries
+Total CO₂ utilized
+Cost savings
+
+Also:
+
+Supplier reliability
+Supplier purity
+Distance
+Delivered price
+
+----------------------
+19. Logistics provider module
+
+Logistics companies get their own marketplace.
+
+They can see:
+
+Available shipments
+Pickup
+Destination
+Quantity
+Vehicle requirements
+Delivery deadline
+Expected payment
+
+They bid on transportation jobs.
+
+Logistics A → ₹38k
+Logistics B → ₹35k
+Logistics C → ₹40k
+
+Platform selects the optimal option.
+
+--------------------------
+22. Reputation score
+
+Every company gets a marketplace score.
+
+Example:
+
+ABC Cement
+
+Reliability      96%
+Quality          98%
+Delivery         94%
+Documentation    100%
+
+Overall score: 96/100
+
+This helps companies choose suppliers quickly.

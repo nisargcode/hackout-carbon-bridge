@@ -1,0 +1,6 @@
+THEME: CIRCULAR CARBON ECOSYSTEM 
+## Carbon Capture-to-Product Matchmaking Platform
+Description: Industries that capture CO2 (cement, steel, power plants) often lack visibility into who can put that carbon to productive use (fuel synthesis, building materials, greenhouses, algae farming). This problem asks participants to build a marketplace where carbon emitters list available captured CO2 (volume, purity, location) and carbon-utilizing industries can discover, request, or bid on supply, with logistics and cost estimation built in.
+User: Industrial carbon emitters, carbon-utilization startups, policy regulators, logistics providers.
+Impact: • Converts captured carbon from a cost center into a tradeable resource. • Reduces net emissions by closing the loop between capture and reuse. • Accelerates adoption of carbon capture technology through clear economic incentive. 
+Tech that can be used: • RESTful APIs / marketplace backend • Database integration (SQL/NoSQL) • Logistics/route optimization • Secure cloud storage 
