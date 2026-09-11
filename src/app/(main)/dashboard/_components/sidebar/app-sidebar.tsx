@@ -1,0 +1,99 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { Leaf, LogOut } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { APP_CONFIG } from "@/config/app-config";
+import { useAuth } from "@/contexts/auth-context";
+import {
+  emitterSidebarItems,
+  buyerSidebarItems,
+  logisticsSidebarItems,
+  regulatorSidebarItems,
+  type NavGroup,
+} from "@/navigation/sidebar/sidebar-items";
+import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+
+import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
+import { SupportCard } from "./support-card";
+
+function getRoleNav(companyType: string | null): NavGroup[] {
+  switch (companyType) {
+    case "EMITTER":
+      return emitterSidebarItems;
+    case "CO2_BUYER":
+      return buyerSidebarItems;
+    case "LOGISTICS_PROVIDER":
+      return logisticsSidebarItems;
+    case "REGULATOR":
+    case "ADMIN":
+      return regulatorSidebarItems;
+    default:
+      return emitterSidebarItems;
+  }
+}
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
+    useShallow((s) => ({
+      sidebarVariant: s.values.sidebar_variant,
+      sidebarCollapsible: s.values.sidebar_collapsible,
+      isSynced: s.isSynced,
+    })),
+  );
+  const { user, company, companyType, signOut } = useAuth();
+  const router = useRouter();
+
+  const variant = isSynced ? sidebarVariant : props.variant;
+  const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
+
+  const navItems = getRoleNav(companyType);
+
+  const currentUser = {
+    name: company?.name ?? user?.email ?? "User",
+    email: user?.email ?? "",
+    avatar: "",
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
+
+  return (
+    <Sidebar {...props} variant={variant} collapsible={collapsible}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link prefetch={false} href="/dashboard">
+                <Leaf className="text-green-600" />
+                <span className="font-semibold text-base">{APP_CONFIG.name}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavMain items={navItems} />
+      </SidebarContent>
+      <SidebarFooter>
+        <SupportCard />
+        <NavUser user={currentUser} onSignOut={handleSignOut} />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
