@@ -34,7 +34,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   const token = authHeader.split(' ')[1];
   const secret = process.env.JWT_SECRET || 'carbon-bridge-secret';
 
-  jwt.verify(token, secret, (err, decoded) => {
+  jwt.verify(token, secret, (err: any, decoded: any) => {
     if (err) {
       res.status(403).json({ error: 'Invalid or expired token' });
       return;

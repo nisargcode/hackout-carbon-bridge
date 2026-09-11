@@ -2,7 +2,7 @@
   "name": "carbon-bridge-backend",
   "version": "1.0.0",
   "description": "REST API backend for Carbon Bridge CO2 marketplace",
-  "main": "dist/index.js",
+  "main": "dist/index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
@@ -10,18 +10,18 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
-    "zod": "^3.24.2"
-  },
-  "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^22.13.9",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.3"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "typescript": "^5.7.3",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
   }
 }
