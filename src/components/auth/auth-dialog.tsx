@@ -60,8 +60,15 @@ interface AuthDialogProps {
 
 export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDialogProps) {
   const [tab, setTab] = useState<string>(defaultTab);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, setDemoRole } = useAuth();
   const router = useRouter();
+
+  const handleDemoSelect = (role: CompanyType) => {
+    setDemoRole(role);
+    toast.success(`Entering dashboard as ${role.replace("_", " ")}`);
+    onOpenChange(false);
+    router.push("/dashboard");
+  };
 
   const loginForm = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
   const registerForm = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
@@ -259,6 +266,50 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
             </Form>
           </TabsContent>
         </Tabs>
+
+        <div className="mt-2 border-t border-border pt-4 text-center">
+          <p className="text-xs text-muted-foreground mb-2.5 font-medium">
+            Or explore directly without login (Demo Mode):
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs justify-start"
+              onClick={() => handleDemoSelect("EMITTER")}
+            >
+              🏭 Emitter (Seller)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs justify-start"
+              onClick={() => handleDemoSelect("CO2_BUYER")}
+            >
+              🛒 CO₂ Buyer
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs justify-start"
+              onClick={() => handleDemoSelect("LOGISTICS_PROVIDER")}
+            >
+              🚚 Logistics Provider
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs justify-start"
+              onClick={() => handleDemoSelect("REGULATOR")}
+            >
+              🏛️ Regulator
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

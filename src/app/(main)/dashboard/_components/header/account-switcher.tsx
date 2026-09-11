@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
+import type { CompanyType } from "@/types";
 
 export function AccountSwitcher({
   users,
@@ -27,7 +29,17 @@ export function AccountSwitcher({
     readonly role: string;
   }>;
 }) {
-  const [activeUser, setActiveUser] = useState(users[0]);
+  const { setDemoRole, companyType, signOut } = useAuth();
+  const [activeUser, setActiveUser] = useState(
+    users.find((u) => u.role === companyType) || users[0]
+  );
+
+  const handleSelectUser = (user: (typeof users)[number]) => {
+    setActiveUser(user);
+    if (user.role) {
+      setDemoRole(user.role as CompanyType);
+    }
+  };
 
   if (!activeUser) {
     return null;
@@ -36,18 +48,19 @@ export function AccountSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="size-8 rounded-lg">
+        <Avatar className="size-8 rounded-lg cursor-pointer">
           <AvatarImage src={activeUser.avatar || undefined} alt={activeUser.name} />
           <AvatarFallback>{getInitials(activeUser.name)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-56 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
+        <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">Switch Role Persona:</div>
         {users.map((user) => (
           <DropdownMenuItem
             key={user.email}
-            className={cn("p-0", user.id === activeUser.id && "bg-accent/50")}
+            className={cn("p-0 cursor-pointer", user.id === activeUser.id && "bg-accent/50")}
             aria-current={user.id === activeUser.id ? "true" : undefined}
-            onClick={() => setActiveUser(user)}
+            onClick={() => handleSelectUser(user)}
           >
             <div className="flex w-full items-center gap-2 px-1 py-1.5">
               <Avatar className="size-9 rounded-lg">
@@ -56,7 +69,7 @@ export function AccountSwitcher({
               </Avatar>
               <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs capitalize">{user.role}</span>
+                <span className="truncate text-xs capitalize text-muted-foreground">{user.role}</span>
               </div>
               <span
                 className={cn(
@@ -70,24 +83,9 @@ export function AccountSwitcher({
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <BadgeCheck />
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard />
-            Billing
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Bell />
-            Notifications
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={signOut} className="cursor-pointer">
           <LogOut />
-          Log out
+          Reset Session
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
