@@ -77,6 +77,7 @@ interface AuthContextValue {
   isGuest: boolean;
   setDemoRole: (role: CompanyType) => void;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signUp: (
     email: string,
     password: string,
@@ -150,6 +151,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+        },
+      });
+      return { error: error?.message ?? null };
+    } catch (err: any) {
+      return { error: err?.message ?? "Google sign-in initialization failed" };
+    }
+  };
+
   const signUp = async (
     email: string,
     password: string,
@@ -199,6 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isGuest,
         setDemoRole,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
       }}
