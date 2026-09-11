@@ -6,8 +6,9 @@ We are using vercel for frontend deployment, render for backend deployment and s
 For landing page:(groww)
 It will give login/signup options in top-right corner,
 Hero section: Large bold headline - "CO2 marketplace", short supporting text -"A marketplace that turns captured CO₂ into a
-traceable, discoverable and tradeable industrial resource." , prominent rounded CTA -"Get started" that leads to login/signup popup, with a large clean visual/graphic on the opposite side.
-Dark mode button is on the left side of login signup button in the corner and follow the theme from theme-template
+traceable, discoverable and tradeable industrial resource." , prominent rounded CTA -"Get started" that leads to login/signup popup, with a large clean visual/graphic on the opposite side, graphic is given in assets folder named 'graphic.png'.
+Don't use dark mode in landing page give the dark mode switch only on other pages same as the theme from theme-template.
+follow everything as theme-template.
 Follow the dashboard theme elsewhere.
 Navigation side bar(from theme-template):
 use your ideas for the elements in nav bar - different for both buyers and sellers and all.
