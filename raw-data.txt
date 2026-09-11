@@ -1,3 +1,55 @@
+structure:
+                  API Gateway
+                       │
+ ┌─────────────────────┼──────────────────────┐
+ │                     │                      │
+ ▼                     ▼                      ▼
+Auth Service      Marketplace Service    Carbon Service
+ │                     │                      │
+ ▼                     ▼                      ▼
+Users               Listings              CO₂ Inventory
+Companies            Bids                  Verification
+Roles                Orders                Traceability
+ │                     │                      │
+ └─────────────────────┼──────────────────────┘
+                       │
+              ┌────────┴─────────┐
+              ▼                  ▼
+       Logistics Engine     Matching Engine
+              │                  │
+              └────────┬─────────┘
+                       ▼
+                Transaction Engine
+                       │
+          ┌────────────┼─────────────┐
+          ▼            ▼             ▼
+      Contracts     Analytics       AI Engine
+
+-----------------------------------------------
+
+api structure:
+
+/api/auth
+/api/companies
+/api/co2/supplies
+/api/co2/requirements
+/api/marketplace
+/api/matches
+/api/bids
+/api/orders
+/api/contracts
+/api/logistics
+/api/routes
+/api/shipments
+/api/verification
+/api/carbon-tracking
+/api/certificates
+/api/analytics
+/api/ai
+/api/regulator
+
+-------------------------------------------------
+
 Company
 Company
  ├── company_id

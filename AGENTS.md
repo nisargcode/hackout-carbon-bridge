@@ -12,3 +12,5 @@ follow everything as theme-template.
 Follow the dashboard theme elsewhere.
 Navigation side bar(from theme-template):
 use your ideas for the elements in nav bar - different for both buyers and sellers and all.
+
+I have just given starting point go on and build the whole project with backend and all stuff.
