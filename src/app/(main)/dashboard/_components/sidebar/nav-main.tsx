@@ -4,15 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "cn";
-import {
-  ChevronRight,
-  MailIcon,
-  PlusCircleIcon,
-  Factory,
-  ShoppingBag,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { ChevronRight, MailIcon, PlusCircleIcon, Factory, ShoppingBag, Sparkles, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -238,11 +230,7 @@ function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild aria-disabled={item.disabled} tooltip={item.title} isActive={isActive}>
-        <Link
-          href={item.url}
-          target={item.newTab ? "_blank" : undefined}
-          rel={item.newTab ? "noreferrer" : undefined}
-        >
+        <Link href={item.url} target={item.newTab ? "_blank" : undefined} rel={item.newTab ? "noreferrer" : undefined}>
           <NavLinkIcon item={item} showFallback={showIconFallback} />
           <span>{item.title}</span>
         </Link>

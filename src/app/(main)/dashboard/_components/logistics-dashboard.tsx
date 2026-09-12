@@ -3,16 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Forklift, MapPin, DollarSign, Package, CheckCircle, ArrowRight, Truck, BarChart3 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,12 +52,8 @@ export function LogisticsDashboard() {
         const assigned = myShipments || [];
         setActiveShipments(assigned);
 
-        const activeCount = assigned.filter(
-          (s) => s.status !== "DELIVERED" && s.status !== "VERIFIED"
-        ).length;
-        const completedCount = assigned.filter(
-          (s) => s.status === "DELIVERED" || s.status === "VERIFIED"
-        ).length;
+        const activeCount = assigned.filter((s) => s.status !== "DELIVERED" && s.status !== "VERIFIED").length;
+        const completedCount = assigned.filter((s) => s.status === "DELIVERED" || s.status === "VERIFIED").length;
         const totalRev = assigned
           .filter((s) => s.status === "DELIVERED" || s.status === "VERIFIED")
           .reduce((sum, s) => sum + (parseFloat(s.transportation_cost) || 0), 0);
@@ -117,10 +104,7 @@ export function LogisticsDashboard() {
     { label: "Completed Jobs", value: stats.completedJobs.toString(), icon: CheckCircle },
     {
       label: "Gross Freight Revenue",
-      value:
-        stats.revenue > 100000
-          ? `?${(stats.revenue / 100000).toFixed(2)}L`
-          : `?${stats.revenue.toLocaleString()}`,
+      value: stats.revenue > 100000 ? `?${(stats.revenue / 100000).toFixed(2)}L` : `?${stats.revenue.toLocaleString()}`,
       icon: DollarSign,
     },
     { label: "Open Transport Jobs", value: stats.availableJobsCount.toString(), icon: Forklift },
@@ -130,9 +114,7 @@ export function LogisticsDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-bold text-2xl text-foreground">
-            Welcome back, {company?.name ?? "Logistics Provider"}
-          </h1>
+          <h1 className="font-bold text-2xl text-foreground">Welcome back, {company?.name ?? "Logistics Provider"}</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Dispatch cryogenic fleet assets, bid on industrial transport tenders, and monitor hazmat compliance.
           </p>
@@ -151,9 +133,7 @@ export function LogisticsDashboard() {
           return (
             <Card key={m.label}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {m.label}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{m.label}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -190,7 +170,9 @@ export function LogisticsDashboard() {
                 <YAxis yAxisId="right" orientation="right" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
                 <Tooltip
                   formatter={(val: any, name: any) => [
-                    name === "Payload (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val * 1000).toLocaleString()}`,
+                    name === "Payload (MT)"
+                      ? `${Number(val).toLocaleString()} MT`
+                      : `?${Number(val * 1000).toLocaleString()}`,
                     name,
                   ]}
                   contentStyle={{
@@ -200,8 +182,20 @@ export function LogisticsDashboard() {
                   }}
                 />
                 <Legend verticalAlign="top" height={36} />
-                <Bar yAxisId="left" dataKey="quantity" name="Payload (MT)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="right" dataKey="cost" name="Tariff (? Thousands)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="quantity"
+                  name="Payload (MT)"
+                  fill="hsl(217, 91%, 60%)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="cost"
+                  name="Tariff (? Thousands)"
+                  fill="hsl(152, 60%, 42%)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

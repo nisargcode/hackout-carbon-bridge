@@ -70,25 +70,15 @@ export default function LandingPage() {
                 CO₂ marketplace
               </h1>
               <p className="max-w-md text-lg text-slate-600 leading-relaxed">
-                A marketplace that turns captured CO₂ into a traceable, discoverable and tradeable
-                industrial resource.
+                A marketplace that turns captured CO₂ into a traceable, discoverable and tradeable industrial resource.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                className="rounded-full px-8 text-base"
-                onClick={openRegister}
-              >
+              <Button size="lg" className="rounded-full px-8 text-base" onClick={openRegister}>
                 Get started
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full px-8 text-base"
-                onClick={openLogin}
-              >
+              <Button size="lg" variant="outline" className="rounded-full px-8 text-base" onClick={openLogin}>
                 Sign in
               </Button>
             </div>
@@ -144,9 +134,7 @@ export default function LandingPage() {
 
         {/* ─── Feature highlights ─── */}
         <section className="py-16">
-          <h2 className="mb-10 text-center font-bold text-3xl text-black">
-            Everything you need to trade CO₂
-          </h2>
+          <h2 className="mb-10 text-center font-bold text-3xl text-black">Everything you need to trade CO₂</h2>
           <div className="grid gap-6 md:grid-cols-3">
             {[
               {
@@ -195,9 +183,7 @@ export default function LandingPage() {
         {/* ─── CTA ─── */}
         <section className="py-16 text-center">
           <div className="rounded-2xl border border-border bg-card px-8 py-12">
-            <h2 className="mb-4 font-bold text-3xl text-black">
-              Ready to turn carbon into value?
-            </h2>
+            <h2 className="mb-4 font-bold text-3xl text-black">Ready to turn carbon into value?</h2>
             <p className="mb-8 text-slate-600">
               Join the circular carbon economy. List your CO₂ or find your next supplier.
             </p>

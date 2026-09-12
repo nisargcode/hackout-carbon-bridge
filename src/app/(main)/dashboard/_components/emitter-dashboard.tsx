@@ -1,9 +1,18 @@
 ﻿import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { 
-  Package, DollarSign, FileText, Award,
-  Clock, Bell, Activity, ArrowRight,
-  CheckCircle2, AlertCircle, ShoppingCart, MessageSquare
+import {
+  Package,
+  DollarSign,
+  FileText,
+  Award,
+  Clock,
+  Bell,
+  Activity,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  ShoppingCart,
+  MessageSquare,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,14 +26,14 @@ import { format, parseISO } from "date-fns";
 export function EmitterDashboard() {
   const { company } = useAuth();
   const [loading, setLoading] = useState(true);
-  
+
   const [stats, setStats] = useState({
     activeListings: 0,
     listedVolume: 0,
     executedContracts: 0,
     esgScore: 0,
   });
-  
+
   const [pendingBids, setPendingBids] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -86,13 +95,13 @@ export function EmitterDashboard() {
           .eq("recipient_id", company.company_id)
           .order("created_at", { ascending: false })
           .limit(5);
-        
+
         setNotifications(notifData || []);
 
         // Stats calculation
-        const activeListings = supplies.filter(s => s.status === "ACTIVE");
+        const activeListings = supplies.filter((s) => s.status === "ACTIVE");
         const listedVolume = activeListings.reduce((sum, s) => sum + (parseFloat(s.available_quantity) || 0), 0);
-        
+
         setStats({
           activeListings: activeListings.length,
           listedVolume,
@@ -103,8 +112,8 @@ export function EmitterDashboard() {
         // 6. Build Timeline
         // Combine supplies, contracts, and bids into a timeline
         let events: any[] = [];
-        
-        supplies.forEach(s => {
+
+        supplies.forEach((s) => {
           events.push({
             id: s.supply_id,
             date: s.created_at,
@@ -116,7 +125,7 @@ export function EmitterDashboard() {
           });
         });
 
-        currentContracts.forEach(c => {
+        currentContracts.forEach((c) => {
           events.push({
             id: c.contract_id,
             date: c.created_at,
@@ -128,7 +137,7 @@ export function EmitterDashboard() {
           });
         });
 
-        bids.forEach(b => {
+        bids.forEach((b) => {
           events.push({
             id: b.bid_id,
             date: b.created_at,
@@ -143,7 +152,6 @@ export function EmitterDashboard() {
         // Sort descending
         events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setTimeline(events);
-
       } catch (err) {
         console.error("Failed to load emitter stats:", err);
       } finally {
@@ -159,7 +167,9 @@ export function EmitterDashboard() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
         </div>
       </div>
     );
@@ -176,7 +186,9 @@ export function EmitterDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="font-bold text-2xl text-foreground">Personal Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview of your industrial carbon capture and commercial listings.</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          Overview of your industrial carbon capture and commercial listings.
+        </p>
       </div>
 
       {/* TOP: METRICS */}
@@ -212,11 +224,16 @@ export function EmitterDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {pendingBids.map(bid => (
-                  <div key={bid.bid_id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                {pendingBids.map((bid) => (
+                  <div
+                    key={bid.bid_id}
+                    className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+                  >
                     <div>
                       <p className="font-medium text-sm">{bid.companies?.name || "Buyer"}</p>
-                      <p className="text-xs text-muted-foreground">{bid.quantity} tons @ ₹{bid.amount}/ton</p>
+                      <p className="text-xs text-muted-foreground">
+                        {bid.quantity} tons @ ₹{bid.amount}/ton
+                      </p>
                     </div>
                     <Button size="sm" asChild variant="outline">
                       <Link href="/dashboard/bids">Review</Link>
@@ -241,8 +258,11 @@ export function EmitterDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {notifications.map(notif => (
-                  <div key={notif.notification_id} className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.notification_id}
+                    className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0"
+                  >
                     <AlertCircle className="h-4 w-4 mt-0.5 text-blue-500" />
                     <div>
                       <p className="text-sm font-medium">{notif.title}</p>
@@ -272,11 +292,13 @@ export function EmitterDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {contracts.map(c => (
+                  {contracts.map((c) => (
                     <div key={c.contract_id} className="flex flex-col gap-1 border border-border p-3 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-sm">{c.companies?.name || "Buyer"}</span>
-                        <span className="text-xs text-muted-foreground">{format(parseISO(c.created_at), "MMM d, yyyy")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(parseISO(c.created_at), "MMM d, yyyy")}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm">{c.quantity} tons</span>
@@ -307,11 +329,17 @@ export function EmitterDashboard() {
                   {timeline.map((event, idx) => {
                     const Icon = event.icon;
                     return (
-                      <Link href={event.link} key={idx} className="block relative pl-6 hover:bg-muted/50 rounded-r-lg transition-colors p-2 -ml-2 -mt-2 group">
+                      <Link
+                        href={event.link}
+                        key={idx}
+                        className="block relative pl-6 hover:bg-muted/50 rounded-r-lg transition-colors p-2 -ml-2 -mt-2 group"
+                      >
                         <div className="absolute w-6 h-6 bg-background border border-border rounded-full -left-[14px] top-2 flex items-center justify-center group-hover:border-primary transition-colors">
                           <Icon className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
-                        <p className="text-xs text-muted-foreground mb-0.5">{format(parseISO(event.date), "MMM d, yyyy")}</p>
+                        <p className="text-xs text-muted-foreground mb-0.5">
+                          {format(parseISO(event.date), "MMM d, yyyy")}
+                        </p>
                         <p className="text-sm font-medium">{event.title}</p>
                         <p className="text-xs text-muted-foreground">{event.desc}</p>
                       </Link>

@@ -103,7 +103,8 @@ export default function JobsPage() {
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-base">No Open Hauling Jobs Available</p>
               <p className="text-sm">
-                When bilateral CO₂ trades are executed between emitters and buyers, loads requiring transport will appear here for carrier bids.
+                When bilateral CO₂ trades are executed between emitters and buyers, loads requiring transport will
+                appear here for carrier bids.
               </p>
             </div>
             <div className="pt-2 flex justify-center gap-3">
@@ -128,7 +129,8 @@ export default function JobsPage() {
                       <Badge className="bg-blue-600 text-white text-xs">Cryogenic Liquid</Badge>
                     </div>
                     <CardDescription className="text-xs mt-1">
-                      Shipper: {job.supplier?.name || "CO2 Supplier"} · Receiver: {job.buyer?.name || "Buyer"} · Distance: ~{job.estimated_distance || 150} km
+                      Shipper: {job.supplier?.name || "CO2 Supplier"} · Receiver: {job.buyer?.name || "Buyer"} ·
+                      Distance: ~{job.estimated_distance || 150} km
                     </CardDescription>
                   </div>
                   <div className="text-right">
@@ -182,7 +184,9 @@ export default function JobsPage() {
                           {job.pickup_location} → {job.destination} ({job.quantity} tons)
                         </p>
                         <div className="space-y-1">
-                          <label className="text-xs font-semibold text-muted-foreground">Your Freight Quote (INR)</label>
+                          <label className="text-xs font-semibold text-muted-foreground">
+                            Your Freight Quote (INR)
+                          </label>
                           <Input
                             type="number"
                             value={bidAmount}

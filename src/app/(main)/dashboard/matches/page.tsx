@@ -73,7 +73,7 @@ export default function MatchesPage() {
           .order("created_at", { ascending: false });
 
         const otherSupplies = (supplies || []).filter(
-          (s) => !company?.company_id || s.emitter_id !== company.company_id
+          (s) => !company?.company_id || s.emitter_id !== company.company_id,
         );
 
         if (otherSupplies.length === 0) {
@@ -89,14 +89,18 @@ export default function MatchesPage() {
           const hasCert = !!s.certification && Object.keys(s.certification).length > 0;
 
           // Purity score (25 pts max)
-          const purityPts = sPurity >= targetDemand.purity ? 25 : Math.max(10, Math.round(25 - (targetDemand.purity - sPurity) * 5));
+          const purityPts =
+            sPurity >= targetDemand.purity ? 25 : Math.max(10, Math.round(25 - (targetDemand.purity - sPurity) * 5));
 
           // Quantity score (20 pts max)
           const qtyRatio = sQty / targetDemand.quantity;
           const qtyPts = qtyRatio >= 1 ? 20 : Math.round(qtyRatio * 20);
 
           // Price score (20 pts max)
-          const pricePts = sPrice <= targetDemand.max_price ? 20 : Math.max(5, Math.round(20 - ((sPrice - targetDemand.max_price) / 100) * 2));
+          const pricePts =
+            sPrice <= targetDemand.max_price
+              ? 20
+              : Math.max(5, Math.round(20 - ((sPrice - targetDemand.max_price) / 100) * 2));
 
           // Distance / Location score (15 pts max)
           const sameLoc = s.location?.toLowerCase().includes(targetDemand.location.toLowerCase().split(",")[0]);
@@ -108,7 +112,10 @@ export default function MatchesPage() {
           // Cert score (10 pts max)
           const certPts = hasCert ? 10 : 5;
 
-          const totalScore = Math.min(100, Math.max(40, purityPts + qtyPts + pricePts + distancePts + availPts + certPts));
+          const totalScore = Math.min(
+            100,
+            Math.max(40, purityPts + qtyPts + pricePts + distancePts + availPts + certPts),
+          );
 
           return {
             supply_id: s.supply_id,
@@ -190,7 +197,8 @@ export default function MatchesPage() {
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-base">No Matching Supplies Available</p>
               <p className="text-sm">
-                When industrial emitters publish CO₂ supply listings, the AI matching engine will compute compatibility scores here.
+                When industrial emitters publish CO₂ supply listings, the AI matching engine will compute compatibility
+                scores here.
               </p>
             </div>
             <Button asChild className="mt-2">

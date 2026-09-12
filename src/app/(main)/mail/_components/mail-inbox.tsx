@@ -66,7 +66,7 @@ export function MailInbox({ onSelectMail }: MailInboxProps) {
         m.body.toLowerCase().includes(q) ||
         m.from.name.toLowerCase().includes(q) ||
         m.from.email.toLowerCase().includes(q) ||
-        m.labels.some((l) => l.toLowerCase().includes(q))
+        m.labels.some((l) => l.toLowerCase().includes(q)),
     );
   }, [folderMails, searchQuery]);
 

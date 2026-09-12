@@ -29,7 +29,9 @@ export default function FleetPage() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("shipments")
-        .select("*, carrier:companies!logistics_provider_id(name, location), supplier:companies!supplier_id(name), buyer:companies!buyer_id(name)")
+        .select(
+          "*, carrier:companies!logistics_provider_id(name, location), supplier:companies!supplier_id(name), buyer:companies!buyer_id(name)",
+        )
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -93,7 +95,8 @@ export default function FleetPage() {
           <Truck className="h-10 w-10 mx-auto text-muted-foreground stroke-1" />
           <h3 className="font-semibold text-base">No active fleet missions dispatched</h3>
           <p className="text-muted-foreground text-xs max-w-md mx-auto">
-            Once logistics jobs are accepted and shipments enter transit, live vehicle pressure and temperature metrics will report here.
+            Once logistics jobs are accepted and shipments enter transit, live vehicle pressure and temperature metrics
+            will report here.
           </p>
         </div>
       ) : (
@@ -113,13 +116,7 @@ export default function FleetPage() {
                     </div>
                     <Badge
                       variant={isDelivered ? "default" : "outline"}
-                      className={
-                        isActive
-                          ? "bg-blue-600 text-white"
-                          : isDelivered
-                          ? "bg-emerald-600 text-white"
-                          : ""
-                      }
+                      className={isActive ? "bg-blue-600 text-white" : isDelivered ? "bg-emerald-600 text-white" : ""}
                     >
                       {m.status}
                     </Badge>

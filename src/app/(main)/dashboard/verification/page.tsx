@@ -145,11 +145,19 @@ export default function VerificationPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-muted-foreground">Issuing Authority / Testing Lab</label>
-                <Input placeholder="e.g. Vimta Analytical Labs, Bureau Veritas" value={issuer} onChange={(e) => setIssuer(e.target.value)} />
+                <Input
+                  placeholder="e.g. Vimta Analytical Labs, Bureau Veritas"
+                  value={issuer}
+                  onChange={(e) => setIssuer(e.target.value)}
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-muted-foreground">Purity / Gas Specification Notes</label>
-                <Input placeholder="e.g. 98.5% CO2 purity confirmed by gas chromatography" value={details} onChange={(e) => setDetails(e.target.value)} />
+                <Input
+                  placeholder="e.g. 98.5% CO2 purity confirmed by gas chromatography"
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                />
               </div>
               <Button className="w-full" onClick={handleUpload}>
                 Stamp & Publish to Registry
@@ -222,16 +230,20 @@ export default function VerificationPage() {
             <Card key={cert.certificate_id} className="hover:border-primary/50 transition-colors">
               <CardContent className="py-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-1.5">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-base">{cert.certificate_type}</span>
-                      <Badge variant="outline" className="text-xs">{cert.certificate_id.slice(0, 8)}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {cert.certificate_id.slice(0, 8)}
+                      </Badge>
                       <Badge className="bg-green-600 text-white flex items-center gap-1 text-xs">
                         <ShieldCheck className="h-3 w-3" /> {cert.verification_status ? "VERIFIED" : "PENDING"}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex flex-wrap gap-4">
-                      <span>Verified By: <strong className="text-foreground">{cert.verified_by}</strong></span>
+                      <span>
+                        Verified By: <strong className="text-foreground">{cert.verified_by}</strong>
+                      </span>
                       <span>Issued: {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : "N/A"}</span>
                       <span>Expires: {cert.expires_at ? new Date(cert.expires_at).toLocaleDateString() : "N/A"}</span>
                     </div>
@@ -243,7 +255,11 @@ export default function VerificationPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => toast.success("Provenance confirmed on statutory registry!")}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toast.success("Provenance confirmed on statutory registry!")}
+                    >
                       <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-600" /> Verify
                     </Button>
                   </div>

@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -51,7 +45,10 @@ function CreateDemandDialog({ onCreated }: { onCreated: () => void }) {
       buyer_id: company.company_id,
       status: "OPEN",
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Demand request created!");
     setOpen(false);
     form.reset();
@@ -61,7 +58,10 @@ function CreateDemandDialog({ onCreated }: { onCreated: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="mr-2 h-4 w-4" />New Demand</Button>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          New Demand
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -70,40 +70,100 @@ function CreateDemandDialog({ onCreated }: { onCreated: () => void }) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="required_quantity" render={({ field }) => (
-                <FormItem><FormLabel>Quantity (tons)</FormLabel><FormControl><Input type="number" placeholder="200" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="required_purity" render={({ field }) => (
-                <FormItem><FormLabel>Min Purity (%)</FormLabel><FormControl><Input type="number" placeholder="95" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="required_quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantity (tons)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="200" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="required_purity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Min Purity (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="95" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <FormField control={form.control} name="application" render={({ field }) => (
-              <FormItem><FormLabel>Application</FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Select use case" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value="Fuel synthesis">Fuel synthesis</SelectItem>
-                    <SelectItem value="Building materials">Building materials</SelectItem>
-                    <SelectItem value="Greenhouse agriculture">Greenhouse agriculture</SelectItem>
-                    <SelectItem value="Algae farming">Algae farming</SelectItem>
-                    <SelectItem value="Chemical production">Chemical production</SelectItem>
-                    <SelectItem value="Enhanced oil recovery">Enhanced oil recovery</SelectItem>
-                    <SelectItem value="Food & beverage">Food & beverage</SelectItem>
-                  </SelectContent>
-                </Select>
-              <FormMessage /></FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="application"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Application</FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select use case" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Fuel synthesis">Fuel synthesis</SelectItem>
+                      <SelectItem value="Building materials">Building materials</SelectItem>
+                      <SelectItem value="Greenhouse agriculture">Greenhouse agriculture</SelectItem>
+                      <SelectItem value="Algae farming">Algae farming</SelectItem>
+                      <SelectItem value="Chemical production">Chemical production</SelectItem>
+                      <SelectItem value="Enhanced oil recovery">Enhanced oil recovery</SelectItem>
+                      <SelectItem value="Food & beverage">Food & beverage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="max_price" render={({ field }) => (
-                <FormItem><FormLabel>Max Price (₹/ton)</FormLabel><FormControl><Input type="number" placeholder="5000" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="required_location" render={({ field }) => (
-                <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="Pune, MH" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="max_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Price (₹/ton)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="5000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="required_location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Pune, MH" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <FormField control={form.control} name="delivery_deadline" render={({ field }) => (
-              <FormItem><FormLabel>Delivery Deadline</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="delivery_deadline"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Delivery Deadline</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Create Request
@@ -132,7 +192,9 @@ export default function DemandsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchDemands(); }, [company]);
+  useEffect(() => {
+    fetchDemands();
+  }, [company]);
 
   return (
     <div className="space-y-6">
@@ -180,9 +242,7 @@ export default function DemandsPage() {
                     </p>
                   </div>
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/dashboard/matches?demand=${d.request_id}`}>
-                      View Matches
-                    </Link>
+                    <Link href={`/dashboard/matches?demand=${d.request_id}`}>View Matches</Link>
                   </Button>
                 </div>
               </CardContent>

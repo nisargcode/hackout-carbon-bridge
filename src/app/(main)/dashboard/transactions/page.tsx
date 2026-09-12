@@ -86,16 +86,18 @@ export default function TransactionsPage() {
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-4">
-                        <span>Volume: <strong className="text-foreground">{tx.total_quantity} tons</strong></span>
-                        <span>Value: <strong className="text-foreground">₹{val.toLocaleString()}</strong></span>
+                        <span>
+                          Volume: <strong className="text-foreground">{tx.total_quantity} tons</strong>
+                        </span>
+                        <span>
+                          Value: <strong className="text-foreground">₹{val.toLocaleString()}</strong>
+                        </span>
                         <span>Date: {new Date(tx.created_at).toLocaleDateString()}</span>
                         <span>Type: {tx.contract_type?.replace("_", " ")}</span>
                       </div>
                     </div>
                     <div>
-                      <Badge className="bg-green-600 text-white text-xs">
-                        {tx.status || "ACTIVE"}
-                      </Badge>
+                      <Badge className="bg-green-600 text-white text-xs">{tx.status || "ACTIVE"}</Badge>
                     </div>
                   </div>
                 </CardContent>

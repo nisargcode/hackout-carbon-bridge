@@ -33,7 +33,7 @@ export default function BidsPage() {
       const { data, error } = await supabase
         .from("bids")
         .select(
-          "*, bidder:companies!bidder_id(company_id, name, location), supply:co2_supplies!supply_id(supply_id, source_industry, asking_price, emitter_id, physical_state, location, emitter:companies!emitter_id(name, location))"
+          "*, bidder:companies!bidder_id(company_id, name, location), supply:co2_supplies!supply_id(supply_id, source_industry, asking_price, emitter_id, physical_state, location, emitter:companies!emitter_id(name, location))",
         )
         .order("created_at", { ascending: false });
 
@@ -44,9 +44,7 @@ export default function BidsPage() {
         // 1. Were submitted to this company's supplies (Incoming)
         // 2. Were placed by this company (Outgoing)
         const relevant = (data || []).filter(
-          (b) =>
-            b.bidder_id === company.company_id ||
-            b.supply?.emitter_id === company.company_id
+          (b) => b.bidder_id === company.company_id || b.supply?.emitter_id === company.company_id,
         );
         setBids(relevant);
       }
@@ -123,9 +121,7 @@ export default function BidsPage() {
         toast.info("Bid declined and buyer notified.");
       }
 
-      setBids((prev) =>
-        prev.map((b) => (b.bid_id === bid.bid_id ? { ...b, status: action } : b))
-      );
+      setBids((prev) => prev.map((b) => (b.bid_id === bid.bid_id ? { ...b, status: action } : b)));
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -140,7 +136,7 @@ export default function BidsPage() {
       const { error } = await supabase
         .from("bids")
         .update({
-          status: "COUNTERED",
+          status: "COUNTER_OFFER",
           amount: Number(counterPrice),
           updated_at: new Date().toISOString(),
         })
@@ -164,10 +160,8 @@ export default function BidsPage() {
 
       setBids((prev) =>
         prev.map((b) =>
-          b.bid_id === activeBid.bid_id
-            ? { ...b, status: "COUNTERED", amount: Number(counterPrice) }
-            : b
-        )
+          b.bid_id === activeBid.bid_id ? { ...b, status: "COUNTER_OFFER", amount: Number(counterPrice) } : b,
+        ),
       );
       toast.success(`Counter offer of ₹${counterPrice}/t submitted!`);
       setActiveBid(null);
@@ -195,7 +189,7 @@ export default function BidsPage() {
 
   const pendingCount = bids.filter((b) => b.status === "PENDING").length;
   const acceptedCount = bids.filter((b) => b.status === "ACCEPTED").length;
-  const counteredCount = bids.filter((b) => b.status === "COUNTERED").length;
+  const counteredCount = bids.filter((b) => b.status === "COUNTER_OFFER").length;
 
   const renderBidCard = (b: any) => {
     const isIncoming = b.supply?.emitter_id === company?.company_id;
@@ -225,18 +219,8 @@ export default function BidsPage() {
                   {b.bid_type?.replace("_", " ") || "BID"}
                 </Badge>
                 <Badge
-                  variant={
-                    b.status === "ACCEPTED"
-                      ? "default"
-                      : b.status === "REJECTED"
-                        ? "destructive"
-                        : "outline"
-                  }
-                  className={
-                    b.status === "ACCEPTED"
-                      ? "bg-emerald-600 text-white hover:bg-emerald-600"
-                      : ""
-                  }
+                  variant={b.status === "ACCEPTED" ? "default" : b.status === "REJECTED" ? "destructive" : "outline"}
+                  className={b.status === "ACCEPTED" ? "bg-emerald-600 text-white hover:bg-emerald-600" : ""}
                 >
                   {b.status}
                 </Badge>
@@ -247,15 +231,11 @@ export default function BidsPage() {
                   Quantity: <strong className="text-foreground">{b.quantity} tons</strong>
                 </span>
                 <span>
-                  Offered Price:{" "}
-                  <strong className="text-foreground">₹{Number(b.amount).toLocaleString()}/t</strong>
+                  Offered Price: <strong className="text-foreground">₹{Number(b.amount).toLocaleString()}/t</strong>
                 </span>
                 {b.supply?.asking_price && (
                   <span>
-                    Asking:{" "}
-                    <span className="line-through">
-                      ₹{Number(b.supply.asking_price).toLocaleString()}/t
-                    </span>
+                    Asking: <span className="line-through">₹{Number(b.supply.asking_price).toLocaleString()}/t</span>
                   </span>
                 )}
                 <span>
@@ -267,9 +247,7 @@ export default function BidsPage() {
                 <span>Date: {new Date(b.created_at).toLocaleDateString()}</span>
               </div>
 
-              {b.notes && (
-                <p className="text-xs text-muted-foreground italic">"{b.notes}"</p>
-              )}
+              {b.notes && <p className="text-xs text-muted-foreground italic">"{b.notes}"</p>}
             </div>
 
             {/* Action buttons */}
@@ -382,7 +360,8 @@ export default function BidsPage() {
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-base">No Bids or Negotiations Found</p>
               <p className="text-sm">
-                When buyers place bids on marketplace supplies or request quotes, negotiations will appear here in real time.
+                When buyers place bids on marketplace supplies or request quotes, negotiations will appear here in real
+                time.
               </p>
             </div>
             <div className="pt-2 flex justify-center gap-3">
@@ -396,12 +375,8 @@ export default function BidsPage() {
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
             <TabsTrigger value="all">All Bids ({bids.length})</TabsTrigger>
-            <TabsTrigger value="incoming">
-              Incoming ({incomingBids.length})
-            </TabsTrigger>
-            <TabsTrigger value="outgoing">
-              Outgoing ({outgoingBids.length})
-            </TabsTrigger>
+            <TabsTrigger value="incoming">Incoming ({incomingBids.length})</TabsTrigger>
+            <TabsTrigger value="outgoing">Outgoing ({outgoingBids.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">

@@ -64,7 +64,7 @@ export default function ContractsPage() {
 
   const totalVal = contracts.reduce(
     (sum, c) => sum + (parseFloat(c.quantity || c.total_quantity) || 0) * (parseFloat(c.unit_price) || 0),
-    0
+    0,
   );
   const activeCount = contracts.filter((c) => c.status === "ACTIVE").length;
 
@@ -120,7 +120,8 @@ export default function ContractsPage() {
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-base">No Bilateral Contracts Found</p>
               <p className="text-sm">
-                When purchase offers or long-term offtakes are signed, legal contracts with cryptographic audit hashes will appear here.
+                When purchase offers or long-term offtakes are signed, legal contracts with cryptographic audit hashes
+                will appear here.
               </p>
             </div>
             <div className="pt-2 flex justify-center gap-3">
@@ -144,13 +145,17 @@ export default function ContractsPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base">
-                          {c.contract_type === "LONG_TERM" ? "Annual CO₂ Offtake Agreement" : "Spot CO₂ Supply Agreement"}
+                          {c.contract_type === "LONG_TERM"
+                            ? "Annual CO₂ Offtake Agreement"
+                            : "Spot CO₂ Supply Agreement"}
                         </CardTitle>
                         <Badge variant={c.contract_type === "LONG_TERM" ? "default" : "outline"}>
                           {c.contract_type?.replace("_", " ") || "SPOT"}
                         </Badge>
                         <Badge
-                          className={c.status === "ACTIVE" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}
+                          className={
+                            c.status === "ACTIVE" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
+                          }
                         >
                           {c.status}
                         </Badge>
@@ -159,9 +164,7 @@ export default function ContractsPage() {
                         Contract Ref: {c.contract_id} · Created: {new Date(c.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <div className="font-bold text-lg text-foreground md:text-right">
-                      ₹{val.toLocaleString()}
-                    </div>
+                    <div className="font-bold text-lg text-foreground md:text-right">₹{val.toLocaleString()}</div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -176,7 +179,9 @@ export default function ContractsPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Volume & Price</p>
-                      <p className="font-medium">{qty} tons @ ₹{price}/t</p>
+                      <p className="font-medium">
+                        {qty} tons @ ₹{price}/t
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Payment Terms</p>

@@ -30,7 +30,12 @@ export function RoleSwitcher() {
     if (res.error) {
       toast.error(`Could not switch role: ${res.error}`);
     } else {
-      const label = targetRole === "EMITTER" ? "Seller (CO₂ Emitter)" : targetRole === "CO2_BUYER" ? "Buyer (CO₂ Offtaker)" : targetRole;
+      const label =
+        targetRole === "EMITTER"
+          ? "Seller (CO₂ Emitter)"
+          : targetRole === "CO2_BUYER"
+            ? "Buyer (CO₂ Offtaker)"
+            : targetRole;
       toast.success(`Switched to ${label} mode!`);
       router.push("/dashboard");
       router.refresh();
@@ -61,18 +66,14 @@ export function RoleSwitcher() {
             <Factory className="h-3.5 w-3.5" />
             <span>Seller</span>
             <ArrowLeftRight className="h-3 w-3 text-muted-foreground ml-0.5" />
-            <span className="hidden md:inline font-normal text-muted-foreground text-[11px]">
-              Switch to Buyer
-            </span>
+            <span className="hidden md:inline font-normal text-muted-foreground text-[11px]">Switch to Buyer</span>
           </>
         ) : (
           <>
             <ShoppingBag className="h-3.5 w-3.5" />
             <span>Buyer</span>
             <ArrowLeftRight className="h-3 w-3 text-muted-foreground ml-0.5" />
-            <span className="hidden md:inline font-normal text-muted-foreground text-[11px]">
-              Switch to Seller
-            </span>
+            <span className="hidden md:inline font-normal text-muted-foreground text-[11px]">Switch to Seller</span>
           </>
         )}
       </Button>
@@ -85,9 +86,7 @@ export function RoleSwitcher() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground">
-            Active Mode
-          </DropdownMenuLabel>
+          <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground">Active Mode</DropdownMenuLabel>
           <DropdownMenuItem
             onClick={() => handleRoleSwitch("EMITTER")}
             className="cursor-pointer flex items-center justify-between"

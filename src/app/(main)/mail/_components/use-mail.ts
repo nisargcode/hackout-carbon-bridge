@@ -46,8 +46,7 @@ export const useMailStore = create<MailStore>((set) => ({
   setMail: (mail) => set({ mail }),
   setActiveFolder: (activeFolder) => set({ activeFolder, activeLabel: null }),
   setActiveLabel: (activeLabel) => set({ activeLabel }),
-  setIsComposeOpen: (isComposeOpen, defaults = null) =>
-    set({ isComposeOpen, composeDefault: defaults || null }),
+  setIsComposeOpen: (isComposeOpen, defaults = null) => set({ isComposeOpen, composeDefault: defaults || null }),
   setMails: (mails) =>
     set((state) => {
       // Ensure current selected exists in new list or fallback

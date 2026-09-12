@@ -8,13 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -51,11 +45,7 @@ export default function EditListingPage() {
     if (!id) return;
     const fetchSupply = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("co2_supplies")
-        .select("*")
-        .eq("supply_id", id)
-        .single();
+      const { data, error } = await supabase.from("co2_supplies").select("*").eq("supply_id", id).single();
 
       if (error || !data) {
         toast.error("Listing not found");
@@ -106,7 +96,8 @@ export default function EditListingPage() {
         source_industry: formState.source_industry,
         location: formState.location,
         availability_start: formState.availability_start || new Date().toISOString().split("T")[0],
-        availability_end: formState.availability_end || new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
+        availability_end:
+          formState.availability_end || new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
         temperature: Number(formState.temperature || 0),
         pressure: Number(formState.pressure || 0),
         status: formState.status as any,
@@ -156,12 +147,7 @@ export default function EditListingPage() {
             Back to Listings
           </Link>
         </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={deleting || saving}
-        >
+        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting || saving}>
           {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
           Delete Listing
         </Button>
@@ -300,10 +286,7 @@ export default function EditListingPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formState.status}
-                  onValueChange={(val) => setFormState({ ...formState, status: val })}
-                >
+                <Select value={formState.status} onValueChange={(val) => setFormState({ ...formState, status: val })}>
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
@@ -341,11 +324,7 @@ export default function EditListingPage() {
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push("/dashboard/listings")}
-              >
+              <Button type="button" variant="outline" onClick={() => router.push("/dashboard/listings")}>
                 Cancel
               </Button>
             </div>

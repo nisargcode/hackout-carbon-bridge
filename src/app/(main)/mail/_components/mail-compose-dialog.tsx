@@ -16,13 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { fetchTradingPartners, sendUserMessage } from "@/lib/messages";
 import { useMailStore } from "./use-mail";
@@ -54,9 +48,7 @@ export function MailComposeDialog() {
   React.useEffect(() => {
     fetchTradingPartners().then((list) => {
       // Exclude current company
-      const filtered = company
-        ? list.filter((p) => p.id !== company.company_id && p.email !== user?.email)
-        : list;
+      const filtered = company ? list.filter((p) => p.id !== company.company_id && p.email !== user?.email) : list;
       setPartners(filtered);
       if (filtered.length > 0 && !selectedPartnerId) {
         setSelectedPartnerId(filtered[0].id);

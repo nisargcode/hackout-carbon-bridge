@@ -24,7 +24,11 @@ export default function Page() {
         </Button>
       </div>
 
-      <iframe src="/mail" title="Industrial Mail" className="min-h-0 flex-1 rounded-lg border bg-background shadow-sm" />
+      <iframe
+        src="/mail"
+        title="Industrial Mail"
+        className="min-h-0 flex-1 rounded-lg border bg-background shadow-sm"
+      />
     </div>
   );
 }

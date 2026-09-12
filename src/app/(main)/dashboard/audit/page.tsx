@@ -100,7 +100,8 @@ export default function AuditPage() {
       <div>
         <h1 className="font-bold text-2xl text-foreground">Immutable Audit Trails & Logs</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Cryptographically timestamped action logs ensuring absolute provenance and traceability across the marketplace.
+          Cryptographically timestamped action logs ensuring absolute provenance and traceability across the
+          marketplace.
         </p>
       </div>
 
@@ -110,7 +111,8 @@ export default function AuditPage() {
             <History className="h-10 w-10 mx-auto stroke-1" />
             <p className="font-semibold text-foreground text-base">No Audit Events Logged Yet</p>
             <p className="text-sm">
-              As certificates are stamped, supply contracts executed, and shipments delivered, cryptographic audit entries will populate here.
+              As certificates are stamped, supply contracts executed, and shipments delivered, cryptographic audit
+              entries will populate here.
             </p>
           </CardContent>
         </Card>
@@ -123,7 +125,9 @@ export default function AuditPage() {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{log.action}</span>
-                      <Badge variant="outline" className="text-xs">{log.id}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {log.id}
+                      </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Target: {log.target} · Actor: {log.actor} · {log.time}

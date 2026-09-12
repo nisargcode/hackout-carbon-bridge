@@ -14,7 +14,9 @@ export default function SettingsPage() {
     if (res.error) {
       toast.error(`Failed to update mode: ${res.error}`);
     } else {
-      toast.success(`Active mode switched to ${newRole === "EMITTER" ? "Seller (CO₂ Emitter)" : "Buyer (CO₂ Offtaker)"}!`);
+      toast.success(
+        `Active mode switched to ${newRole === "EMITTER" ? "Seller (CO₂ Emitter)" : "Buyer (CO₂ Offtaker)"}!`,
+      );
     }
   };
 

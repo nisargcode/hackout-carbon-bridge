@@ -46,11 +46,7 @@ export default function CompliancePage() {
     try {
       const supabase = createClient();
 
-      const [
-        { data: compData },
-        { data: certData },
-        { data: shipData },
-      ] = await Promise.all([
+      const [{ data: compData }, { data: certData }, { data: shipData }] = await Promise.all([
         supabase.from("companies").select("company_id, name, industry, verification_status, sustainability_score"),
         supabase.from("certificates").select("*, companies:company_id(name)"),
         supabase.from("shipments").select("quantity, status"),
@@ -88,9 +84,10 @@ export default function CompliancePage() {
       .filter((s) => s.status === "VERIFIED" || s.status === "DELIVERED")
       .reduce((sum, s) => sum + (Number(s.quantity) || 0), 0);
 
-    const avgSustainabilityScore = totalCompanies > 0
-      ? Math.round(companies.reduce((sum, c) => sum + (Number(c.sustainability_score) || 0), 0) / totalCompanies)
-      : 0;
+    const avgSustainabilityScore =
+      totalCompanies > 0
+        ? Math.round(companies.reduce((sum, c) => sum + (Number(c.sustainability_score) || 0), 0) / totalCompanies)
+        : 0;
 
     return {
       totalCompanies,
@@ -180,9 +177,7 @@ export default function CompliancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">
-              {metrics.totalVerifiedCO2.toLocaleString()} MT
-            </div>
+            <div className="font-bold text-2xl text-foreground">{metrics.totalVerifiedCO2.toLocaleString()} MT</div>
             <p className="text-xs text-muted-foreground mt-2">
               Avg enterprise ESG score: {metrics.avgSustainabilityScore}/100
             </p>
@@ -196,9 +191,7 @@ export default function CompliancePage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">Registered Entities Compliance Roster</CardTitle>
-              <CardDescription>
-                Statutory accreditation records from the live regulatory database
-              </CardDescription>
+              <CardDescription>Statutory accreditation records from the live regulatory database</CardDescription>
             </div>
             <Badge variant="outline">{companies.length} Corporations</Badge>
           </div>
@@ -218,7 +211,8 @@ export default function CompliancePage() {
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Sustainability Index: {c.sustainability_score || "N/A"}/100 ? UUID: {c.company_id.slice(0, 8).toUpperCase()}
+                    Sustainability Index: {c.sustainability_score || "N/A"}/100 ? UUID:{" "}
+                    {c.company_id.slice(0, 8).toUpperCase()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

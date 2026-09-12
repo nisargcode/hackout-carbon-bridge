@@ -28,7 +28,7 @@ export default function ShipmentsPage() {
 
       if (company?.company_id) {
         query = query.or(
-          `supplier_id.eq.${company.company_id},buyer_id.eq.${company.company_id},logistics_provider.eq.${company.company_id}`
+          `supplier_id.eq.${company.company_id},buyer_id.eq.${company.company_id},logistics_provider.eq.${company.company_id}`,
         );
       }
 
@@ -57,21 +57,14 @@ export default function ShipmentsPage() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase
-        .from("shipments")
-        .update({ status: nextStatus })
-        .eq("shipment_id", shipmentId);
+      const { error } = await supabase.from("shipments").update({ status: nextStatus }).eq("shipment_id", shipmentId);
 
       if (error) {
         toast.error(`Update failed: ${error.message}`);
         return;
       }
 
-      setShipments((prev) =>
-        prev.map((s) =>
-          s.shipment_id === shipmentId ? { ...s, status: nextStatus } : s
-        )
-      );
+      setShipments((prev) => prev.map((s) => (s.shipment_id === shipmentId ? { ...s, status: nextStatus } : s)));
       toast.success(`Shipment advanced to ${nextStatus.replace("_", " ")}!`);
     } catch (err: any) {
       toast.error(err.message);
@@ -97,7 +90,8 @@ export default function ShipmentsPage() {
         <div>
           <h1 className="font-bold text-2xl text-foreground">CO₂ Logistics & Shipment Tracking</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Real-time multi-modal tracking through every stage: MATCHED → BOOKED → PICKED UP → IN TRANSIT → DELIVERED → VERIFIED.
+            Real-time multi-modal tracking through every stage: MATCHED → BOOKED → PICKED UP → IN TRANSIT → DELIVERED →
+            VERIFIED.
           </p>
         </div>
       </div>
@@ -109,7 +103,8 @@ export default function ShipmentsPage() {
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-base">No Shipments Active</p>
               <p className="text-sm">
-                When supply contracts are executed, transport shipments are automatically generated and tracked through verified custody handover.
+                When supply contracts are executed, transport shipments are automatically generated and tracked through
+                verified custody handover.
               </p>
             </div>
             <div className="pt-2 flex justify-center gap-3">
@@ -133,25 +128,32 @@ export default function ShipmentsPage() {
                         <CardTitle className="text-base">
                           {s.pickup_location} → {s.destination}
                         </CardTitle>
-                        <Badge variant="outline" className="text-xs">{s.shipment_id.slice(0, 8)}</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {s.shipment_id.slice(0, 8)}
+                        </Badge>
                         <Badge
                           className={
                             s.status === "VERIFIED"
                               ? "bg-green-600 text-white"
                               : s.status === "IN_TRANSIT"
-                              ? "bg-blue-600 text-white"
-                              : "bg-amber-600 text-white"
+                                ? "bg-blue-600 text-white"
+                                : "bg-amber-600 text-white"
                           }
                         >
                           {s.status?.replace("_", " ")}
                         </Badge>
                       </div>
                       <CardDescription className="text-xs mt-1">
-                        Carrier: <strong>{s.carrier?.name || "Unassigned"}</strong> · Distance: {s.estimated_distance || 150} km · Freight: ₹{Number(s.transportation_cost || 0).toLocaleString()}
+                        Carrier: <strong>{s.carrier?.name || "Unassigned"}</strong> · Distance:{" "}
+                        {s.estimated_distance || 150} km · Freight: ₹
+                        {Number(s.transportation_cost || 0).toLocaleString()}
                       </CardDescription>
                     </div>
                     <div className="text-sm font-semibold text-muted-foreground">
-                      ETA: <span className="text-foreground">{s.estimated_delivery ? new Date(s.estimated_delivery).toLocaleDateString() : "Pending"}</span>
+                      ETA:{" "}
+                      <span className="text-foreground">
+                        {s.estimated_delivery ? new Date(s.estimated_delivery).toLocaleDateString() : "Pending"}
+                      </span>
                     </div>
                   </div>
                 </CardHeader>
@@ -170,8 +172,8 @@ export default function ShipmentsPage() {
                                 isCurrent
                                   ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
                                   : isDone
-                                  ? "bg-green-600 text-white"
-                                  : "bg-muted text-muted-foreground"
+                                    ? "bg-green-600 text-white"
+                                    : "bg-muted text-muted-foreground"
                               }`}
                             >
                               {isDone && !isCurrent ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}

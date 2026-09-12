@@ -14,13 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -33,12 +27,7 @@ interface ProfileEditDialogProps {
   onUpdated?: () => void;
 }
 
-export function ProfileEditDialog({
-  open,
-  onOpenChange,
-  company,
-  onUpdated,
-}: ProfileEditDialogProps) {
+export function ProfileEditDialog({ open, onOpenChange, company, onUpdated }: ProfileEditDialogProps) {
   const { user, refreshCompany } = useAuth();
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
@@ -142,10 +131,7 @@ export function ProfileEditDialog({
             {/* Industry */}
             <div className="space-y-1.5">
               <Label htmlFor="industry">Industry Sector</Label>
-              <Select
-                value={form.industry}
-                onValueChange={(val) => setForm({ ...form, industry: val })}
-              >
+              <Select value={form.industry} onValueChange={(val) => setForm({ ...form, industry: val })}>
                 <SelectTrigger id="industry">
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
@@ -235,12 +221,7 @@ export function ProfileEditDialog({
           </div>
 
           <DialogFooter className="pt-3 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>

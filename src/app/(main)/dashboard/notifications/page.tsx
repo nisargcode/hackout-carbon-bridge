@@ -206,7 +206,7 @@ export default function NotificationsPage() {
     if (!company?.company_id) return;
     markAllNotificationsAsRead(
       company.company_id,
-      notifications.map((n) => n.notification_id)
+      notifications.map((n) => n.notification_id),
     );
     setNotifications((prev) => prev.map((n) => ({ ...n, read_status: true })));
     setUnreadCount(0);
@@ -216,15 +216,13 @@ export default function NotificationsPage() {
   // Toggle single read
   const handleToggleRead = (id: string) => {
     markNotificationAsRead(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.notification_id === id ? { ...n, read_status: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.notification_id === id ? { ...n, read_status: true } : n)));
     setUnreadCount((c) => Math.max(0, c - 1));
   };
 
   // Metric counts
   const pendingActionsCount = notifications.filter(
-    (n) => n.type === "BID_RECEIVED" && n.metadata?.status === "PENDING"
+    (n) => n.type === "BID_RECEIVED" && n.metadata?.status === "PENDING",
   ).length;
 
   const acceptedDealsCount = notifications.filter((n) => n.type === "BID_ACCEPTED").length;
@@ -259,9 +257,7 @@ export default function NotificationsPage() {
       <Card
         key={n.notification_id}
         className={`transition-all border ${
-          !n.read_status
-            ? "border-primary/40 bg-primary/2 dark:bg-primary/5 shadow-xs"
-            : "hover:border-border"
+          !n.read_status ? "border-primary/40 bg-primary/2 dark:bg-primary/5 shadow-xs" : "hover:border-border"
         }`}
       >
         <CardContent className="p-5">
@@ -333,8 +329,7 @@ export default function NotificationsPage() {
                     )}
                     {amount && (
                       <span className="bg-muted/40 px-2 py-0.5 rounded-md">
-                        Unit Price:{" "}
-                        <strong className="text-foreground">₹{amount.toLocaleString()}/t</strong>
+                        Unit Price: <strong className="text-foreground">₹{amount.toLocaleString()}/t</strong>
                       </span>
                     )}
                     {total && (
@@ -346,9 +341,7 @@ export default function NotificationsPage() {
                 )}
 
                 {n.metadata?.notes && (
-                  <p className="text-xs text-muted-foreground italic pt-0.5">
-                    "{n.metadata.notes}"
-                  </p>
+                  <p className="text-xs text-muted-foreground italic pt-0.5">"{n.metadata.notes}"</p>
                 )}
 
                 <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
@@ -458,9 +451,7 @@ export default function NotificationsPage() {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              Total Notifications
-            </CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total Notifications</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="font-bold text-2xl">{notifications.length}</div>
@@ -472,11 +463,7 @@ export default function NotificationsPage() {
             <CardTitle className="text-xs font-medium text-muted-foreground">Unread Alerts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              className={`font-bold text-2xl ${
-                unreadCount > 0 ? "text-emerald-600" : "text-muted-foreground"
-              }`}
-            >
+            <div className={`font-bold text-2xl ${unreadCount > 0 ? "text-emerald-600" : "text-muted-foreground"}`}>
               {unreadCount}
             </div>
           </CardContent>
@@ -484,15 +471,11 @@ export default function NotificationsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              Action Required
-            </CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Action Required</CardTitle>
           </CardHeader>
           <CardContent>
             <div
-              className={`font-bold text-2xl ${
-                pendingActionsCount > 0 ? "text-amber-500" : "text-muted-foreground"
-              }`}
+              className={`font-bold text-2xl ${pendingActionsCount > 0 ? "text-amber-500" : "text-muted-foreground"}`}
             >
               {pendingActionsCount}
             </div>
@@ -501,9 +484,7 @@ export default function NotificationsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              Confirmed Deals
-            </CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Confirmed Deals</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="font-bold text-2xl text-primary">{acceptedDealsCount}</div>
@@ -521,9 +502,7 @@ export default function NotificationsPage() {
           <TabsTrigger value="action" className="gap-1.5">
             Pending Action
             {pendingActionsCount > 0 && (
-              <Badge className="bg-amber-500 text-white h-4 px-1 text-[10px]">
-                {pendingActionsCount}
-              </Badge>
+              <Badge className="bg-amber-500 text-white h-4 px-1 text-[10px]">{pendingActionsCount}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="bids" className="gap-1.5">
@@ -543,8 +522,8 @@ export default function NotificationsPage() {
                 <div className="space-y-1">
                   <p className="font-semibold text-foreground text-base">No Notifications Yet</p>
                   <p className="text-sm">
-                    When buyers submit bids on your supply, or when sellers accept your offers,
-                    real-time trade notifications will appear here.
+                    When buyers submit bids on your supply, or when sellers accept your offers, real-time trade
+                    notifications will appear here.
                   </p>
                 </div>
                 <div className="pt-2">
@@ -561,8 +540,7 @@ export default function NotificationsPage() {
 
         {/* Tab 2: Action Required */}
         <TabsContent value="action" className="space-y-3">
-          {notifications.filter((n) => n.type === "BID_RECEIVED" && n.metadata?.status === "PENDING")
-            .length === 0 ? (
+          {notifications.filter((n) => n.type === "BID_RECEIVED" && n.metadata?.status === "PENDING").length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center text-muted-foreground">
                 <CheckCircle2 className="h-9 w-9 mx-auto mb-2 text-emerald-600 stroke-1" />
@@ -586,16 +564,13 @@ export default function NotificationsPage() {
               </CardContent>
             </Card>
           ) : (
-            notifications
-              .filter((n) => n.type.startsWith("BID"))
-              .map(renderNotificationCard)
+            notifications.filter((n) => n.type.startsWith("BID")).map(renderNotificationCard)
           )}
         </TabsContent>
 
         {/* Tab 4: Confirmed Deals */}
         <TabsContent value="deals" className="space-y-3">
-          {notifications.filter((n) => n.type === "BID_ACCEPTED" || n.type === "CONTRACT_CREATED")
-            .length === 0 ? (
+          {notifications.filter((n) => n.type === "BID_ACCEPTED" || n.type === "CONTRACT_CREATED").length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center text-muted-foreground">
                 <p className="font-medium text-foreground">No confirmed deals yet.</p>

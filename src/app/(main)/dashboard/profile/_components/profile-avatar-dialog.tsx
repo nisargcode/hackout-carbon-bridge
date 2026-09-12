@@ -181,9 +181,7 @@ export function ProfileAvatarDialog({
         window.dispatchEvent(new CustomEvent("carbon_bridge_profile_updated"));
       }
 
-      toast.success(
-        avatarUrl ? "Profile picture updated successfully!" : "Profile picture removed"
-      );
+      toast.success(avatarUrl ? "Profile picture updated successfully!" : "Profile picture removed");
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile picture");
@@ -263,21 +261,15 @@ export function ProfileAvatarDialog({
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 ${
-                dragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+                dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
               }`}
             >
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Upload className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  SVG, PNG, JPG or WebP (max. 5MB)
-                </p>
+                <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
+                <p className="text-xs text-muted-foreground">SVG, PNG, JPG or WebP (max. 5MB)</p>
               </div>
             </div>
           </TabsContent>
@@ -322,12 +314,7 @@ export function ProfileAvatarDialog({
         </Tabs>
 
         <DialogFooter className="pt-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancel
           </Button>
           <Button type="button" onClick={handleSave} disabled={saving}>

@@ -337,16 +337,12 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
                 <div className="mt-1 flex flex-col gap-0.5">
                   <div className="text-muted-foreground text-xs leading-none">{mail.from.email}</div>
                   <div className="text-muted-foreground text-xs">
-                    To:{" "}
-                    <span className="text-foreground">
-                      {mail.to?.map((r) => r.name).join(", ") || "Me"}
-                    </span>
+                    To: <span className="text-foreground">{mail.to?.map((r) => r.name).join(", ") || "Me"}</span>
                   </div>
 
                   {mail.cc?.length ? (
                     <div className="text-muted-foreground text-xs">
-                      Cc:{" "}
-                      <span className="text-foreground">{mail.cc.map((r) => r.name).join(", ")}</span>
+                      Cc: <span className="text-foreground">{mail.cc.map((r) => r.name).join(", ")}</span>
                     </div>
                   ) : null}
                 </div>
@@ -429,9 +425,7 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
             </form>
           </div>
         ) : (
-          <div className="grid h-full place-items-center text-muted-foreground text-sm">
-            No email selected
-          </div>
+          <div className="grid h-full place-items-center text-muted-foreground text-sm">No email selected</div>
         )}
       </div>
     </div>

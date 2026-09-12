@@ -98,10 +98,7 @@ export default function ProfilePage() {
         .eq("emitter_id", company.company_id);
 
       const supplyCount = supplies?.length || 0;
-      const volume = (supplies || []).reduce(
-        (acc, s) => acc + (Number(s.available_quantity) || 0),
-        0
-      );
+      const volume = (supplies || []).reduce((acc, s) => acc + (Number(s.available_quantity) || 0), 0);
 
       // 2. Fetch contracts
       const { data: contracts } = await supabase
@@ -110,10 +107,7 @@ export default function ProfilePage() {
         .or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`);
 
       // 3. Fetch bids
-      const { data: bids } = await supabase
-        .from("bids")
-        .select("bid_id")
-        .eq("bidder_id", company.company_id);
+      const { data: bids } = await supabase.from("bids").select("bid_id").eq("bidder_id", company.company_id);
 
       // 4. Fetch reputation scores if available
       const { data: rep } = await supabase
@@ -202,13 +196,7 @@ export default function ProfilePage() {
                     className="col-start-1 row-start-1 size-full -rotate-90 text-muted/30"
                     viewBox="0 0 100 100"
                   >
-                    <circle
-                      className="fill-none stroke-current"
-                      cx="50"
-                      cy="50"
-                      r="44"
-                      strokeWidth="3.5"
-                    />
+                    <circle className="fill-none stroke-current" cx="50" cy="50" r="44" strokeWidth="3.5" />
                     <circle
                       className="fill-none stroke-emerald-600 dark:stroke-emerald-400 transition-all duration-700"
                       cx="50"
@@ -242,9 +230,7 @@ export default function ProfilePage() {
               {/* Text Info */}
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="font-heading font-bold text-2xl text-foreground">
-                    {displayName}
-                  </h1>
+                  <h1 className="font-heading font-bold text-2xl text-foreground">{displayName}</h1>
                   {company?.verification_status ? (
                     <Badge className="bg-emerald-600 text-white gap-1 text-xs">
                       <ShieldCheck className="h-3 w-3" />
@@ -290,21 +276,11 @@ export default function ProfilePage() {
 
             {/* Right: Actions */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => setAvatarDialogOpen(true)}
-              >
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setAvatarDialogOpen(true)}>
                 <Camera className="h-4 w-4 text-muted-foreground" />
                 Set Profile Pic
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => setEditDialogOpen(true)}
-              >
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setEditDialogOpen(true)}>
                 <Pencil className="h-4 w-4 text-muted-foreground" />
                 Edit Profile
               </Button>
@@ -314,9 +290,7 @@ export default function ProfilePage() {
                 onClick={async () => {
                   const targetRole = companyType === "EMITTER" ? "CO2_BUYER" : "EMITTER";
                   await switchRole(targetRole);
-                  toast.success(
-                    `Switched persona to ${targetRole === "EMITTER" ? "Seller (Emitter)" : "Buyer"}`
-                  );
+                  toast.success(`Switched persona to ${targetRole === "EMITTER" ? "Seller (Emitter)" : "Buyer"}`);
                 }}
               >
                 <ArrowRightLeft className="h-4 w-4" />
@@ -359,18 +333,14 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="font-bold text-2xl text-emerald-600">
-                  {stats.totalVolume.toLocaleString()} t
-                </div>
+                <div className="font-bold text-2xl text-emerald-600">{stats.totalVolume.toLocaleString()} t</div>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Metric tons CO₂</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  Executed Contracts
-                </CardTitle>
+                <CardTitle className="text-xs font-medium text-muted-foreground">Executed Contracts</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="font-bold text-2xl text-primary">{stats.totalContracts}</div>
@@ -380,14 +350,10 @@ export default function ProfilePage() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  ESG Reputation Score
-                </CardTitle>
+                <CardTitle className="text-xs font-medium text-muted-foreground">ESG Reputation Score</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="font-bold text-2xl text-amber-500">
-                  {stats.reputation.overall}%
-                </div>
+                <div className="font-bold text-2xl text-amber-500">{stats.reputation.overall}%</div>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Verified MRV rating</p>
               </CardContent>
             </Card>
@@ -444,9 +410,7 @@ export default function ProfilePage() {
                   <ShieldCheck className="h-4 w-4 text-emerald-600" />
                   Reputation & MRV Reliability
                 </CardTitle>
-                <CardDescription>
-                  Autonomous performance scores based on delivery, purity, and audits
-                </CardDescription>
+                <CardDescription>Autonomous performance scores based on delivery, purity, and audits</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
@@ -537,9 +501,7 @@ export default function ProfilePage() {
                     <MapPin className="h-3.5 w-3.5 text-primary" />
                     Registered Office & Facility
                   </span>
-                  <p className="font-medium text-foreground">
-                    {company?.location || "Maharashtra, India"}
-                  </p>
+                  <p className="font-medium text-foreground">{company?.location || "Maharashtra, India"}</p>
                 </div>
 
                 <div className="md:col-span-2 p-4 rounded-xl border bg-muted/20 space-y-1">
@@ -571,23 +533,17 @@ export default function ProfilePage() {
                 <div className="p-4 rounded-xl border space-y-1">
                   <p className="text-xs text-muted-foreground">Handling Physical States</p>
                   <p className="font-semibold">Liquid (Cryogenic) & Compressed Gas</p>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Operating pressure: 15 - 25 bar @ -20°C
-                  </p>
+                  <p className="text-xs text-muted-foreground pt-1">Operating pressure: 15 - 25 bar @ -20°C</p>
                 </div>
                 <div className="p-4 rounded-xl border space-y-1">
                   <p className="text-xs text-muted-foreground">Typical Capture Method</p>
                   <p className="font-semibold">Post-combustion Amine Scrubbing</p>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    High recovery rate (&gt;90%)
-                  </p>
+                  <p className="text-xs text-muted-foreground pt-1">High recovery rate (&gt;90%)</p>
                 </div>
                 <div className="p-4 rounded-xl border space-y-1">
                   <p className="text-xs text-muted-foreground">Certified Purity Rating</p>
                   <p className="font-semibold text-emerald-600">98.5% - 99.2% CO₂</p>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Food & Industrial Grade Compatible
-                  </p>
+                  <p className="text-xs text-muted-foreground pt-1">Food & Industrial Grade Compatible</p>
                 </div>
               </div>
 
@@ -595,9 +551,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold text-sm">Active MRV Verification Standards</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Third-party audited emissions documentation
-                    </p>
+                    <p className="text-xs text-muted-foreground">Third-party audited emissions documentation</p>
                   </div>
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/dashboard/verification">

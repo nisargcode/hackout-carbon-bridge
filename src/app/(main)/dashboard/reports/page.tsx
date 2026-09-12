@@ -24,31 +24,27 @@ export default function ReportsPage() {
     try {
       const supabase = createClient();
 
-      const [
-        { data: supplyData },
-        { data: contractData },
-        { data: shipmentData },
-        { data: certData },
-      ] = await Promise.all([
-        company?.company_id
-          ? supabase.from("co2_supplies").select("*").eq("emitter_id", company.company_id)
-          : supabase.from("co2_supplies").select("*"),
-        company?.company_id
-          ? supabase
-              .from("contracts")
-              .select("*")
-              .or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
-          : supabase.from("contracts").select("*"),
-        company?.company_id
-          ? supabase
-              .from("shipments")
-              .select("*")
-              .or(`supplier_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
-          : supabase.from("shipments").select("*"),
-        company?.company_id
-          ? supabase.from("certificates").select("*").eq("company_id", company.company_id)
-          : supabase.from("certificates").select("*"),
-      ]);
+      const [{ data: supplyData }, { data: contractData }, { data: shipmentData }, { data: certData }] =
+        await Promise.all([
+          company?.company_id
+            ? supabase.from("co2_supplies").select("*").eq("emitter_id", company.company_id)
+            : supabase.from("co2_supplies").select("*"),
+          company?.company_id
+            ? supabase
+                .from("contracts")
+                .select("*")
+                .or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
+            : supabase.from("contracts").select("*"),
+          company?.company_id
+            ? supabase
+                .from("shipments")
+                .select("*")
+                .or(`supplier_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
+            : supabase.from("shipments").select("*"),
+          company?.company_id
+            ? supabase.from("certificates").select("*").eq("company_id", company.company_id)
+            : supabase.from("certificates").select("*"),
+        ]);
 
       setSupplies(supplyData || []);
       setContracts(contractData || []);
@@ -124,7 +120,15 @@ Generated via Carbon Bridge Cryptographic Audit Trail.
       downloadBlob(content, `BRSR_Environmental_Disclosure_${dateStr}.txt`, "text/plain");
       toast.success("Downloaded BRSR Statutory Environmental Disclosure.");
     } else if (type === "MASS_BALANCE") {
-      const headers = ["Supply ID", "Quantity (MT)", "Physical State", "Purity (%)", "Asking Price (INR)", "Capture Method", "Location"];
+      const headers = [
+        "Supply ID",
+        "Quantity (MT)",
+        "Physical State",
+        "Purity (%)",
+        "Asking Price (INR)",
+        "Capture Method",
+        "Location",
+      ];
       const rows = supplies.map((s) => [
         s.supply_id,
         s.available_quantity,
@@ -218,7 +222,8 @@ This official audit sheet has been verified against registered smart contracts a
         <div>
           <h1 className="font-bold text-2xl text-foreground">Carbon Abatement & Statutory ESG Reports</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Auditable disclosures, mass-balance certificates, and net-emissions abatement filings derived from real telemetry.
+            Auditable disclosures, mass-balance certificates, and net-emissions abatement filings derived from real
+            telemetry.
           </p>
         </div>
         <Button

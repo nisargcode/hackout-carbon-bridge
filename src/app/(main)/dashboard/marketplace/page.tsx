@@ -21,13 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -252,7 +246,7 @@ export default function MarketplacePage() {
             ? "Buy-Now order request submitted successfully!"
             : bidType === "REQUEST_QUOTE"
               ? "Quote request submitted to seller!"
-              : `Bid of ₹${price.toLocaleString()}/t submitted successfully!`
+              : `Bid of ₹${price.toLocaleString()}/t submitted successfully!`,
         );
         setBidModalOpen(false);
         setSelectedSupply(null);
@@ -339,28 +333,14 @@ export default function MarketplacePage() {
           <div className="text-xs text-muted-foreground min-w-28">
             Max Price: <span className="font-semibold text-foreground">₹{maxPrice[0].toLocaleString()}/t</span>
           </div>
-          <Slider
-            value={maxPrice}
-            onValueChange={setMaxPrice}
-            min={1000}
-            max={15000}
-            step={100}
-            className="flex-1"
-          />
+          <Slider value={maxPrice} onValueChange={setMaxPrice} min={1000} max={15000} step={100} className="flex-1" />
         </div>
 
         <div className="md:col-span-2 flex items-center justify-between gap-4 p-2 rounded-lg border bg-muted/20">
           <div className="text-xs text-muted-foreground min-w-28">
             Min Purity: <span className="font-semibold text-foreground">{minPurity[0]}%</span>
           </div>
-          <Slider
-            value={minPurity}
-            onValueChange={setMinPurity}
-            min={50}
-            max={100}
-            step={0.5}
-            className="flex-1"
-          />
+          <Slider value={minPurity} onValueChange={setMinPurity} min={50} max={100} step={0.5} className="flex-1" />
         </div>
       </div>
 
@@ -379,8 +359,8 @@ export default function MarketplacePage() {
           <CardDescription className="max-w-md mt-2 mb-6 text-sm">
             {totalCount > 0 && supplies.length === 0 ? (
               <>
-                You currently have active listings as an emitter. In buyer view, your own listings
-                are automatically hidden so you only see supplies from other companies.
+                You currently have active listings as an emitter. In buyer view, your own listings are automatically
+                hidden so you only see supplies from other companies.
               </>
             ) : (
               "Try adjusting your search terms, price limit, or purity threshold to find available supplies."
@@ -410,8 +390,7 @@ export default function MarketplacePage() {
             const companyName = supply.companies?.name || supply.source_industry || "Industrial Emitter";
             const purity = Number(supply.purity_percentage) || 95;
             const price = Number(supply.asking_price) || 4000;
-            const hasCert =
-              supply.certification && Object.keys(supply.certification).length > 0;
+            const hasCert = supply.certification && Object.keys(supply.certification).length > 0;
 
             return (
               <Card
@@ -429,9 +408,7 @@ export default function MarketplacePage() {
                         <MapPin className="h-3.5 w-3.5" />
                         {supply.location}
                         {supply.source_industry && (
-                          <span className="text-xs text-muted-foreground">
-                            • {supply.source_industry}
-                          </span>
+                          <span className="text-xs text-muted-foreground">• {supply.source_industry}</span>
                         )}
                       </CardDescription>
                     </div>
@@ -464,9 +441,7 @@ export default function MarketplacePage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Asking Price</p>
-                      <p className="font-semibold mt-0.5 text-primary">
-                        ₹{price.toLocaleString()}/t
-                      </p>
+                      <p className="font-semibold mt-0.5 text-primary">₹{price.toLocaleString()}/t</p>
                     </div>
                   </div>
 
@@ -486,7 +461,9 @@ export default function MarketplacePage() {
                       <span>{supply.capture_method || "Industrial process"}</span>
                     </div>
                     {supply.minimum_order && (
-                      <span>Min order: {supply.minimum_order} {supply.quantity_unit}</span>
+                      <span>
+                        Min order: {supply.minimum_order} {supply.quantity_unit}
+                      </span>
                     )}
                   </div>
 
@@ -500,11 +477,7 @@ export default function MarketplacePage() {
                     >
                       Request Quote
                     </Button>
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleOpenBid(supply, "BID")}
-                    >
+                    <Button size="sm" className="flex-1" onClick={() => handleOpenBid(supply, "BID")}>
                       Bid Now
                     </Button>
                   </div>
@@ -527,8 +500,7 @@ export default function MarketplacePage() {
                   : "Request Official Quote"}
             </DialogTitle>
             <DialogDescription>
-              {selectedSupply?.companies?.name || selectedSupply?.source_industry} •{" "}
-              {selectedSupply?.location}
+              {selectedSupply?.companies?.name || selectedSupply?.source_industry} • {selectedSupply?.location}
             </DialogDescription>
           </DialogHeader>
 
@@ -543,9 +515,7 @@ export default function MarketplacePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Seller's Asking Price:</span>
-                  <span className="font-medium">
-                    ₹{Number(selectedSupply.asking_price).toLocaleString()}/t
-                  </span>
+                  <span className="font-medium">₹{Number(selectedSupply.asking_price).toLocaleString()}/t</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Minimum Order:</span>
@@ -557,9 +527,7 @@ export default function MarketplacePage() {
 
               {/* Offered Quantity */}
               <div className="space-y-2">
-                <Label htmlFor="bid_quantity">
-                  Required Quantity ({selectedSupply.quantity_unit})
-                </Label>
+                <Label htmlFor="bid_quantity">Required Quantity ({selectedSupply.quantity_unit})</Label>
                 <Input
                   id="bid_quantity"
                   type="number"
@@ -611,12 +579,7 @@ export default function MarketplacePage() {
               </div>
 
               <DialogFooter className="pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setBidModalOpen(false)}
-                  disabled={submittingBid}
-                >
+                <Button type="button" variant="outline" onClick={() => setBidModalOpen(false)} disabled={submittingBid}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submittingBid}>

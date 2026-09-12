@@ -17,13 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -123,7 +117,8 @@ export default function ListingsPage() {
           source_industry: formState.source_industry,
           location: formState.location,
           availability_start: formState.availability_start || new Date().toISOString().split("T")[0],
-          availability_end: formState.availability_end || new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
+          availability_end:
+            formState.availability_end || new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
           temperature: Number(formState.temperature || 0),
           pressure: Number(formState.pressure || 0),
           status: formState.status as any,
@@ -153,10 +148,7 @@ export default function ListingsPage() {
 
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from("co2_supplies")
-        .delete()
-        .eq("supply_id", editingListing.supply_id);
+      const { error } = await supabase.from("co2_supplies").delete().eq("supply_id", editingListing.supply_id);
 
       if (error) {
         toast.error(`Failed to delete: ${error.message}`);
@@ -178,9 +170,7 @@ export default function ListingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bold text-2xl text-foreground">My Listings</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage your CO₂ supply listings on the marketplace.
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">Manage your CO₂ supply listings on the marketplace.</p>
         </div>
         <Button asChild>
           <Link href="/dashboard/listings/new">
@@ -219,9 +209,7 @@ export default function ListingsPage() {
                     <CardDescription>{l.location}</CardDescription>
                   </div>
                   <div className="flex gap-2 items-center">
-                    {(l.certification as any)?.verified && (
-                      <Badge className="bg-blue-600 text-white">Verified</Badge>
-                    )}
+                    {(l.certification as any)?.verified && <Badge className="bg-blue-600 text-white">Verified</Badge>}
                     <Badge
                       variant={l.status === "ACTIVE" ? "default" : "outline"}
                       className={
@@ -256,12 +244,7 @@ export default function ListingsPage() {
                   <span>
                     {l.physical_state} · {l.capture_method}
                   </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleOpenEdit(l)}
-                    className="h-8 gap-1.5"
-                  >
+                  <Button size="sm" variant="outline" onClick={() => handleOpenEdit(l)} className="h-8 gap-1.5">
                     <Edit className="h-3.5 w-3.5" />
                     Edit
                   </Button>
@@ -277,9 +260,7 @@ export default function ListingsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit CO₂ Supply Listing</DialogTitle>
-            <DialogDescription>
-              Update your available supply parameters, pricing, and availability.
-            </DialogDescription>
+            <DialogDescription>Update your available supply parameters, pricing, and availability.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
@@ -425,10 +406,7 @@ export default function ListingsPage() {
               {/* Status */}
               <div className="space-y-2">
                 <Label htmlFor="status">Listing Status</Label>
-                <Select
-                  value={formState.status}
-                  onValueChange={(val) => setFormState({ ...formState, status: val })}
-                >
+                <Select value={formState.status} onValueChange={(val) => setFormState({ ...formState, status: val })}>
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
@@ -493,11 +471,7 @@ export default function ListingsPage() {
                 onClick={handleDeleteListing}
                 disabled={deleting || saving}
               >
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-1" />
-                )}
+                {deleting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
                 Delete
               </Button>
               <div className="flex gap-2">

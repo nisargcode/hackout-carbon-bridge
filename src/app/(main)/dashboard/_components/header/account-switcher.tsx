@@ -22,7 +22,7 @@ export function AccountSwitcher() {
   const router = useRouter();
 
   const displayName = company?.name || user?.email?.split("@")[0] || "Guest User";
-  const email = user?.email || company?.contact_details?.email as string || "Not signed in";
+  const email = user?.email || (company?.contact_details?.email as string) || "Not signed in";
   const role = companyType || "MEMBER";
   const avatarUrl =
     (company?.contact_details?.avatar_url as string) ||

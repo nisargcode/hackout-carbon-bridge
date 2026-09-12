@@ -1,9 +1,18 @@
 ﻿import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  ShoppingBag, Target, FileText, Award,
-  Clock, Bell, Activity, ArrowRight,
-  CheckCircle2, AlertCircle, Package, MessageSquare
+import {
+  ShoppingBag,
+  Target,
+  FileText,
+  Award,
+  Clock,
+  Bell,
+  Activity,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Package,
+  MessageSquare,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,14 +25,14 @@ import { format, parseISO } from "date-fns";
 export function BuyerDashboard() {
   const { company } = useAuth();
   const [loading, setLoading] = useState(true);
-  
+
   const [stats, setStats] = useState({
     activeDemands: 0,
     demandedVolume: 0,
     executedContracts: 0,
     esgScore: 0,
   });
-  
+
   const [pendingMatches, setPendingMatches] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -85,13 +94,13 @@ export function BuyerDashboard() {
           .eq("recipient_id", company.company_id)
           .order("created_at", { ascending: false })
           .limit(5);
-        
+
         setNotifications(notifData || []);
 
         // Stats calculation
-        const activeDemands = demands.filter(d => d.status === "OPEN");
+        const activeDemands = demands.filter((d) => d.status === "OPEN");
         const demandedVolume = activeDemands.reduce((sum, d) => sum + (parseFloat(d.required_quantity) || 0), 0);
-        
+
         setStats({
           activeDemands: activeDemands.length,
           demandedVolume,
@@ -101,8 +110,8 @@ export function BuyerDashboard() {
 
         // 6. Build Timeline
         let events: any[] = [];
-        
-        demands.forEach(d => {
+
+        demands.forEach((d) => {
           events.push({
             id: d.request_id,
             date: d.created_at,
@@ -114,7 +123,7 @@ export function BuyerDashboard() {
           });
         });
 
-        currentContracts.forEach(c => {
+        currentContracts.forEach((c) => {
           events.push({
             id: c.contract_id,
             date: c.created_at,
@@ -126,7 +135,7 @@ export function BuyerDashboard() {
           });
         });
 
-        matches.forEach(b => {
+        matches.forEach((b) => {
           events.push({
             id: b.bid_id,
             date: b.created_at,
@@ -141,7 +150,6 @@ export function BuyerDashboard() {
         // Sort descending
         events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setTimeline(events);
-
       } catch (err) {
         console.error("Failed to load buyer stats:", err);
       } finally {
@@ -157,7 +165,9 @@ export function BuyerDashboard() {
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
         </div>
       </div>
     );
@@ -210,11 +220,16 @@ export function BuyerDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {pendingMatches.map(match => (
-                  <div key={match.bid_id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                {pendingMatches.map((match) => (
+                  <div
+                    key={match.bid_id}
+                    className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+                  >
                     <div>
                       <p className="font-medium text-sm">{match.companies?.name || "Supplier"}</p>
-                      <p className="text-xs text-muted-foreground">{match.quantity} tons @ ₹{match.amount}/ton</p>
+                      <p className="text-xs text-muted-foreground">
+                        {match.quantity} tons @ ₹{match.amount}/ton
+                      </p>
                     </div>
                     <Button size="sm" asChild variant="outline">
                       <Link href="/dashboard/bids">Review</Link>
@@ -239,8 +254,11 @@ export function BuyerDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {notifications.map(notif => (
-                  <div key={notif.notification_id} className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.notification_id}
+                    className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0"
+                  >
                     <AlertCircle className="h-4 w-4 mt-0.5 text-blue-500" />
                     <div>
                       <p className="text-sm font-medium">{notif.title}</p>
@@ -270,11 +288,13 @@ export function BuyerDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {contracts.map(c => (
+                  {contracts.map((c) => (
                     <div key={c.contract_id} className="flex flex-col gap-1 border border-border p-3 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-sm">{c.companies?.name || "Supplier"}</span>
-                        <span className="text-xs text-muted-foreground">{format(parseISO(c.created_at), "MMM d, yyyy")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(parseISO(c.created_at), "MMM d, yyyy")}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm">{c.quantity} tons</span>
@@ -305,11 +325,17 @@ export function BuyerDashboard() {
                   {timeline.map((event, idx) => {
                     const Icon = event.icon;
                     return (
-                      <Link href={event.link} key={idx} className="block relative pl-6 hover:bg-muted/50 rounded-r-lg transition-colors p-2 -ml-2 -mt-2 group">
+                      <Link
+                        href={event.link}
+                        key={idx}
+                        className="block relative pl-6 hover:bg-muted/50 rounded-r-lg transition-colors p-2 -ml-2 -mt-2 group"
+                      >
                         <div className="absolute w-6 h-6 bg-background border border-border rounded-full -left-[14px] top-2 flex items-center justify-center group-hover:border-primary transition-colors">
                           <Icon className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
-                        <p className="text-xs text-muted-foreground mb-0.5">{format(parseISO(event.date), "MMM d, yyyy")}</p>
+                        <p className="text-xs text-muted-foreground mb-0.5">
+                          {format(parseISO(event.date), "MMM d, yyyy")}
+                        </p>
                         <p className="text-sm font-medium">{event.title}</p>
                         <p className="text-xs text-muted-foreground">{event.desc}</p>
                       </Link>

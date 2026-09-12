@@ -54,11 +54,7 @@ export function MailComponent({ mails: initialMails, defaultLayout = [...DEFAULT
     );
   }
 
-  return isMobile ? (
-    <MailMobileLayout />
-  ) : (
-    <MailDesktopLayout defaultLayout={defaultLayout} />
-  );
+  return isMobile ? <MailMobileLayout /> : <MailDesktopLayout defaultLayout={defaultLayout} />;
 }
 
 function MailMobileLayout() {

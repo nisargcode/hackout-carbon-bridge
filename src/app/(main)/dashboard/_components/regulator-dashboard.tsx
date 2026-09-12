@@ -3,16 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ShieldCheck, ReceiptText, AlertCircle, BarChart2, ArrowRight, BarChart3 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,21 +26,13 @@ export function RegulatorDashboard() {
         const supabase = createClient();
 
         // 1. Fetch counts
-        const { count: txCount } = await supabase
-          .from("contracts")
-          .select("*", { count: "exact", head: true });
-        const { count: certCount } = await supabase
-          .from("certificates")
-          .select("*", { count: "exact", head: true });
+        const { count: txCount } = await supabase.from("contracts").select("*", { count: "exact", head: true });
+        const { count: certCount } = await supabase.from("certificates").select("*", { count: "exact", head: true });
 
         // 2. Fetch shipments for mass balance tracking
-        const { data: shipments } = await supabase
-          .from("shipments")
-          .select("quantity, status");
-        const totalCO2 =
-          shipments?.reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0) || 0;
-        const pending =
-          shipments?.filter((s) => s.status !== "VERIFIED").length || 0;
+        const { data: shipments } = await supabase.from("shipments").select("quantity, status");
+        const totalCO2 = shipments?.reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0) || 0;
+        const pending = shipments?.filter((s) => s.status !== "VERIFIED").length || 0;
 
         // 3. Fetch recent contracts
         const { data: contracts } = await supabase
@@ -110,9 +93,7 @@ export function RegulatorDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-bold text-2xl text-foreground">
-            Regulatory Oversight & Statutory Audit
-          </h1>
+          <h1 className="font-bold text-2xl text-foreground">Regulatory Oversight & Statutory Audit</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Real-time compliance monitoring, verified chain-of-custody, and carbon accounting.
           </p>
@@ -131,9 +112,7 @@ export function RegulatorDashboard() {
           return (
             <Card key={m.label}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {m.label}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{m.label}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -170,7 +149,9 @@ export function RegulatorDashboard() {
                 <YAxis yAxisId="right" orientation="right" stroke="hsl(217, 91%, 60%)" tick={{ fontSize: 12 }} />
                 <Tooltip
                   formatter={(val: any, name: any) => [
-                    name === "Volume (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val).toLocaleString()} Lakhs`,
+                    name === "Volume (MT)"
+                      ? `${Number(val).toLocaleString()} MT`
+                      : `?${Number(val).toLocaleString()} Lakhs`,
                     name,
                   ]}
                   contentStyle={{
@@ -180,8 +161,20 @@ export function RegulatorDashboard() {
                   }}
                 />
                 <Legend verticalAlign="top" height={36} />
-                <Bar yAxisId="left" dataKey="volume" name="Volume (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="right" dataKey="value" name="Value (? Lakhs)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="volume"
+                  name="Volume (MT)"
+                  fill="hsl(152, 60%, 42%)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="value"
+                  name="Value (? Lakhs)"
+                  fill="hsl(217, 91%, 60%)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -207,9 +200,7 @@ export function RegulatorDashboard() {
               <div className="text-center py-8 text-muted-foreground space-y-2">
                 <ReceiptText className="h-8 w-8 mx-auto stroke-1" />
                 <p className="text-sm">No marketplace transactions recorded yet.</p>
-                <p className="text-xs">
-                  When emitters and buyers execute bilateral contracts, audits will track here.
-                </p>
+                <p className="text-xs">When emitters and buyers execute bilateral contracts, audits will track here.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -223,12 +214,11 @@ export function RegulatorDashboard() {
                         {tx.seller?.name || "Seller"} ? {tx.buyer?.name || "Buyer"}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {tx.quantity} tons @ ?{Number(tx.unit_price || 0).toLocaleString()}/ton ? Value: ?{(Number(tx.quantity || 0) * Number(tx.unit_price || 0)).toLocaleString()}
+                        {tx.quantity} tons @ ?{Number(tx.unit_price || 0).toLocaleString()}/ton ? Value: ?
+                        {(Number(tx.quantity || 0) * Number(tx.unit_price || 0)).toLocaleString()}
                       </p>
                     </div>
-                    <Badge variant={tx.status === "ACTIVE" ? "default" : "outline"}>
-                      {tx.status}
-                    </Badge>
+                    <Badge variant={tx.status === "ACTIVE" ? "default" : "outline"}>{tx.status}</Badge>
                   </div>
                 ))}
               </div>

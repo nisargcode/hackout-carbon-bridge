@@ -62,7 +62,9 @@ export default function RevenuePage() {
 
       let query = supabase
         .from("contracts")
-        .select("*, buyer:companies!buyer_id(company_id, name, location), seller:companies!seller_id(company_id, name, location)")
+        .select(
+          "*, buyer:companies!buyer_id(company_id, name, location), seller:companies!seller_id(company_id, name, location)",
+        )
         .order("created_at", { ascending: false });
 
       if (company?.company_id && (companyType === "EMITTER" || companyType === "CO2_BUYER")) {
@@ -104,7 +106,7 @@ export default function RevenuePage() {
     let totalVolume = 0;
 
     contracts.forEach((c) => {
-      const val = Number(c.total_value) || (Number(c.quantity) * Number(c.unit_price)) || 0;
+      const val = Number(c.total_value) || Number(c.quantity) * Number(c.unit_price) || 0;
       const vol = Number(c.quantity) || 0;
 
       totalGross += val;
@@ -132,9 +134,7 @@ export default function RevenuePage() {
   // Interactive Monthly Cashflow Chart Data
   const chartData = useMemo(() => {
     if (contracts.length === 0) {
-      return [
-        { period: "Current Period", settled: 0, escrow: 0, total: 0 },
-      ];
+      return [{ period: "Current Period", settled: 0, escrow: 0, total: 0 }];
     }
 
     const map: Record<string, { period: string; settled: number; escrow: number; total: number }> = {};
@@ -146,7 +146,7 @@ export default function RevenuePage() {
         map[period] = { period, settled: 0, escrow: 0, total: 0 };
       }
 
-      const val = Number(c.total_value) || (Number(c.quantity) * Number(c.unit_price)) || 0;
+      const val = Number(c.total_value) || Number(c.quantity) * Number(c.unit_price) || 0;
       map[period].total += val;
       if (c.status === "COMPLETED") {
         map[period].settled += val;
@@ -164,13 +164,21 @@ export default function RevenuePage() {
       return;
     }
 
-    const headers = ["Contract ID", "Counterparty", "Quantity (MT)", "Unit Price (INR)", "Total Value (INR)", "Status", "Date"];
+    const headers = [
+      "Contract ID",
+      "Counterparty",
+      "Quantity (MT)",
+      "Unit Price (INR)",
+      "Total Value (INR)",
+      "Status",
+      "Date",
+    ];
     const rows = contracts.map((c) => [
       c.contract_id,
       companyType === "CO2_BUYER" ? c.seller?.name || "Supplier" : c.buyer?.name || "Offtaker",
       c.quantity,
       c.unit_price,
-      c.total_value || (c.quantity * c.unit_price),
+      c.total_value || c.quantity * c.unit_price,
       c.status,
       c.created_at ? new Date(c.created_at).toISOString().split("T")[0] : "",
     ]);
@@ -215,9 +223,7 @@ export default function RevenuePage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight text-foreground">
-            Revenue & Financial Settlements
-          </h1>
+          <h1 className="font-bold text-2xl tracking-tight text-foreground">Revenue & Financial Settlements</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Realized cash flows, escrow security balances, and off-take transaction settlements from executed contracts.
           </p>
@@ -254,9 +260,7 @@ export default function RevenuePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">
-              {formatCurrency(financialStats.totalGross)}
-            </div>
+            <div className="font-bold text-2xl text-foreground">{formatCurrency(financialStats.totalGross)}</div>
             <p className="text-xs text-muted-foreground mt-1 font-medium">
               {financialStats.contractCount} legally-binding contract{financialStats.contractCount === 1 ? "" : "s"}
             </p>
@@ -271,12 +275,8 @@ export default function RevenuePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-blue-600">
-              {formatCurrency(financialStats.escrowSecured)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Active custody & transit guarantees
-            </p>
+            <div className="font-bold text-2xl text-blue-600">{formatCurrency(financialStats.escrowSecured)}</div>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Active custody & transit guarantees</p>
           </CardContent>
         </Card>
 
@@ -288,12 +288,8 @@ export default function RevenuePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-emerald-600">
-              {formatCurrency(financialStats.netSettled)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Verified & completed consignments
-            </p>
+            <div className="font-bold text-2xl text-emerald-600">{formatCurrency(financialStats.netSettled)}</div>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Verified & completed consignments</p>
           </CardContent>
         </Card>
 
@@ -321,9 +317,7 @@ export default function RevenuePage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">Revenue & Escrow Cashflow Trends</CardTitle>
-              <CardDescription>
-                Real-time breakdown of settled funds versus in-flight escrow protection
-              </CardDescription>
+              <CardDescription>Real-time breakdown of settled funds versus in-flight escrow protection</CardDescription>
             </div>
             <Badge variant="outline">Live Ledger</Badge>
           </div>
@@ -398,15 +392,25 @@ export default function RevenuePage() {
               <FileSpreadsheet className="h-10 w-10 mx-auto stroke-1" />
               <p className="text-sm font-medium">No contract settlements found.</p>
               <p className="text-xs max-w-sm mx-auto">
-                Once negotiations and bids are accepted, legally-binding contract records and settlements will populate automatically.
+                Once negotiations and bids are accepted, legally-binding contract records and settlements will populate
+                automatically.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               {contracts.map((tx) => {
-                const counterparty = companyType === "CO2_BUYER" ? tx.seller?.name || "Seller Facility" : tx.buyer?.name || "Industrial Buyer";
-                const amount = Number(tx.total_value) || (Number(tx.quantity) * Number(tx.unit_price)) || 0;
-                const dateStr = tx.created_at ? new Date(tx.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent";
+                const counterparty =
+                  companyType === "CO2_BUYER"
+                    ? tx.seller?.name || "Seller Facility"
+                    : tx.buyer?.name || "Industrial Buyer";
+                const amount = Number(tx.total_value) || Number(tx.quantity) * Number(tx.unit_price) || 0;
+                const dateStr = tx.created_at
+                  ? new Date(tx.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Recent";
                 const isSettled = tx.status === "COMPLETED";
 
                 return (
@@ -422,21 +426,20 @@ export default function RevenuePage() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        ID: {tx.contract_id.slice(0, 8).toUpperCase()} ? {tx.quantity} MT @ ?{Number(tx.unit_price).toLocaleString()}/MT ? {dateStr}
+                        ID: {tx.contract_id.slice(0, 8).toUpperCase()} ? {tx.quantity} MT @ ?
+                        {Number(tx.unit_price).toLocaleString()}/MT ? {dateStr}
                       </p>
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-3">
-                      <span className="font-bold text-base text-foreground">
-                        ?{amount.toLocaleString()}
-                      </span>
+                      <span className="font-bold text-base text-foreground">?{amount.toLocaleString()}</span>
                       <Badge
                         variant={isSettled ? "default" : "outline"}
                         className={
                           isSettled
                             ? "bg-emerald-600 text-white hover:bg-emerald-600"
                             : tx.status === "ACTIVE"
-                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                            : ""
+                              ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                              : ""
                         }
                       >
                         {isSettled ? "SETTLED" : tx.status === "ACTIVE" ? "IN ESCROW" : tx.status}

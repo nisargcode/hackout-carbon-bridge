@@ -14,13 +14,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import {
-  TrendingUp,
-  Package,
-  ShieldCheck,
-  RefreshCw,
-  IndianRupee,
-} from "lucide-react";
+import { TrendingUp, Package, ShieldCheck, RefreshCw, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,7 +25,7 @@ import { createClient } from "@/lib/supabase/client";
 const OKLCH_COLORS = [
   "hsl(152, 60%, 42%)", // emerald green
   "hsl(217, 91%, 60%)", // royal blue
-  "hsl(38, 92%, 50%)",  // amber gold
+  "hsl(38, 92%, 50%)", // amber gold
   "hsl(271, 81%, 56%)", // purple
   "hsl(330, 81%, 60%)", // rose pink
   "hsl(187, 85%, 43%)", // cyan teal
@@ -93,17 +87,13 @@ export default function CarbonAnalyticsPage() {
     try {
       const supabase = createClient();
 
-      const [
-        { data: supplyData },
-        { data: demandData },
-        { data: contractData },
-        { data: shipmentData },
-      ] = await Promise.all([
-        supabase.from("co2_supplies").select("*"),
-        supabase.from("demand_requests").select("*"),
-        supabase.from("contracts").select("*"),
-        supabase.from("shipments").select("*"),
-      ]);
+      const [{ data: supplyData }, { data: demandData }, { data: contractData }, { data: shipmentData }] =
+        await Promise.all([
+          supabase.from("co2_supplies").select("*"),
+          supabase.from("demand_requests").select("*"),
+          supabase.from("contracts").select("*"),
+          supabase.from("shipments").select("*"),
+        ]);
 
       setSupplies(supplyData || []);
       setDemands(demandData || []);
@@ -128,30 +118,21 @@ export default function CarbonAnalyticsPage() {
 
   // Strictly professional computed calculations
   const kpis = useMemo(() => {
-    const totalAvailableSupply = supplies.reduce(
-      (sum, s) => sum + (Number(s.available_quantity) || 0),
-      0
-    );
+    const totalAvailableSupply = supplies.reduce((sum, s) => sum + (Number(s.available_quantity) || 0), 0);
 
-    const totalOpenDemand = demands.reduce(
-      (sum, d) => sum + (Number(d.required_quantity) || 0),
-      0
-    );
+    const totalOpenDemand = demands.reduce((sum, d) => sum + (Number(d.required_quantity) || 0), 0);
 
-    const totalContractedVolume = contracts.reduce(
-      (sum, c) => sum + (Number(c.quantity) || 0),
-      0
-    );
+    const totalContractedVolume = contracts.reduce((sum, c) => sum + (Number(c.quantity) || 0), 0);
 
     const totalContractValue = contracts.reduce(
-      (sum, c) => sum + (Number(c.total_value) || (Number(c.quantity) * Number(c.unit_price)) || 0),
-      0
+      (sum, c) => sum + (Number(c.total_value) || Number(c.quantity) * Number(c.unit_price) || 0),
+      0,
     );
 
     // Weighted average asking price per ton
     const totalSupplyValue = supplies.reduce(
       (sum, s) => sum + (Number(s.available_quantity) || 0) * (Number(s.asking_price) || 0),
-      0
+      0,
     );
     const avgAskingPrice = totalAvailableSupply > 0 ? Math.round(totalSupplyValue / totalAvailableSupply) : 0;
 
@@ -169,7 +150,8 @@ export default function CarbonAnalyticsPage() {
       .reduce((sum, s) => sum + (Number(s.quantity) || 0), 0);
 
     // Market liquidity ratio
-    const liquidityRatio = totalAvailableSupply > 0 ? ((totalContractedVolume / totalAvailableSupply) * 100).toFixed(1) : "0.0";
+    const liquidityRatio =
+      totalAvailableSupply > 0 ? ((totalContractedVolume / totalAvailableSupply) * 100).toFixed(1) : "0.0";
 
     return {
       totalAvailableSupply,
@@ -205,7 +187,8 @@ export default function CarbonAnalyticsPage() {
 
   // Physical State Distribution (Liquid, Gas, Supercritical)
   const stateChartData = useMemo(() => {
-    const map: Record<string, { state: string; volume: number; avgPrice: number; count: number; totalVal: number }> = {};
+    const map: Record<string, { state: string; volume: number; avgPrice: number; count: number; totalVal: number }> =
+      {};
 
     supplies.forEach((s) => {
       const st = s.physical_state || "Liquid";
@@ -228,7 +211,7 @@ export default function CarbonAnalyticsPage() {
   // Purity Distribution
   const purityChartData = useMemo(() => {
     let ultraHigh = 0; // > 99.5%
-    let beverage = 0;  // 99.0% - 99.49%
+    let beverage = 0; // 99.0% - 99.49%
     let technical = 0; // 95.0% - 98.99%
     let industrial = 0; // < 95.0%
 
@@ -275,7 +258,11 @@ export default function CarbonAnalyticsPage() {
   const contractTrendData = useMemo(() => {
     if (contracts.length === 0) {
       return [
-        { period: "Current Period", volume: kpis.totalContractedVolume, value: Math.round(kpis.totalContractValue / 100000) },
+        {
+          period: "Current Period",
+          volume: kpis.totalContractedVolume,
+          value: Math.round(kpis.totalContractValue / 100000),
+        },
       ];
     }
 
@@ -285,7 +272,7 @@ export default function CarbonAnalyticsPage() {
       const key = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
       if (!map[key]) map[key] = { period: key, volume: 0, value: 0 };
       map[key].volume += Number(c.quantity) || 0;
-      map[key].value += Math.round((Number(c.total_value) || (Number(c.quantity) * Number(c.unit_price)) || 0) / 100000); // In Lakhs
+      map[key].value += Math.round((Number(c.total_value) || Number(c.quantity) * Number(c.unit_price) || 0) / 100000); // In Lakhs
     });
 
     return Object.values(map);
@@ -335,68 +322,51 @@ export default function CarbonAnalyticsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Marketplace Supply Available
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Marketplace Supply Available</CardTitle>
             <Package className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">
-              {kpis.totalAvailableSupply.toLocaleString()} MT
-            </div>
-            <p className="text-muted-foreground text-xs mt-1">
-              Across {supplies.length} active producer batches
-            </p>
+            <div className="font-bold text-2xl text-foreground">{kpis.totalAvailableSupply.toLocaleString()} MT</div>
+            <p className="text-muted-foreground text-xs mt-1">Across {supplies.length} active producer batches</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Contracted Trading Volume
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Contracted Trading Volume</CardTitle>
             <TrendingUp className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">
-              {kpis.totalContractedVolume.toLocaleString()} MT
-            </div>
-            <p className="text-muted-foreground text-xs mt-1">
-              {kpis.liquidityRatio}% market absorption rate
-            </p>
+            <div className="font-bold text-2xl text-foreground">{kpis.totalContractedVolume.toLocaleString()} MT</div>
+            <p className="text-muted-foreground text-xs mt-1">{kpis.liquidityRatio}% market absorption rate</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Weighted Avg CO? Price
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Weighted Avg CO? Price</CardTitle>
             <IndianRupee className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">
-              ?{kpis.avgAskingPrice.toLocaleString()}/MT
-            </div>
+            <div className="font-bold text-2xl text-foreground">?{kpis.avgAskingPrice.toLocaleString()}/MT</div>
             <p className="text-muted-foreground text-xs mt-1">
-              Realized Contract: ?{kpis.avgContractPrice ? kpis.avgContractPrice.toLocaleString() : kpis.avgAskingPrice.toLocaleString()}/MT
+              Realized Contract: ?
+              {kpis.avgContractPrice ? kpis.avgContractPrice.toLocaleString() : kpis.avgAskingPrice.toLocaleString()}/MT
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Verified Abatement Displaced
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Verified Abatement Displaced</CardTitle>
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-emerald-600">
-              {kpis.verifiedAbatementTons.toLocaleString()} MT
-            </div>
+            <div className="font-bold text-2xl text-emerald-600">{kpis.verifiedAbatementTons.toLocaleString()} MT</div>
             <p className="text-muted-foreground text-xs mt-1">
-              {kpis.inTransitTons > 0 ? `+${kpis.inTransitTons.toLocaleString()} MT in transit` : "Statutory verified offtake"}
+              {kpis.inTransitTons > 0
+                ? `+${kpis.inTransitTons.toLocaleString()} MT in transit`
+                : "Statutory verified offtake"}
             </p>
           </CardContent>
         </Card>
@@ -420,9 +390,7 @@ export default function CarbonAnalyticsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-base">Executed Offtake Value & Volume</CardTitle>
-                    <CardDescription>
-                      Actual settled and active legally-binding contracts from Supabase
-                    </CardDescription>
+                    <CardDescription>Actual settled and active legally-binding contracts from Supabase</CardDescription>
                   </div>
                   <Badge variant="outline">Live DB</Badge>
                 </div>
@@ -444,8 +412,20 @@ export default function CarbonAnalyticsPage() {
                         }}
                       />
                       <Legend verticalAlign="top" height={36} />
-                      <Bar yAxisId="left" dataKey="volume" name="Volume (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
-                      <Bar yAxisId="right" dataKey="value" name="Value (? Lakhs)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="volume"
+                        name="Volume (MT)"
+                        fill="hsl(152, 60%, 42%)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        yAxisId="right"
+                        dataKey="value"
+                        name="Value (? Lakhs)"
+                        fill="hsl(217, 91%, 60%)"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -468,9 +448,7 @@ export default function CarbonAnalyticsPage() {
               <CardContent className="pt-2">
                 <div className="h-72 w-full flex items-center justify-center">
                   {purityChartData.length === 0 ? (
-                    <div className="text-center text-muted-foreground text-sm">
-                      No certified supplies listed yet.
-                    </div>
+                    <div className="text-center text-muted-foreground text-sm">No certified supplies listed yet.</div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -545,9 +523,7 @@ export default function CarbonAnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Available Volume by Physical State</CardTitle>
-                <CardDescription>
-                  Gross inventory distribution across state phases
-                </CardDescription>
+                <CardDescription>Gross inventory distribution across state phases</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-72 w-full">
@@ -608,8 +584,18 @@ export default function CarbonAnalyticsPage() {
                         }}
                       />
                       <Legend verticalAlign="top" height={36} />
-                      <Bar dataKey="supply" name="Captured Supply (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="demand" name="Requested Demand (MT)" fill="hsl(271, 81%, 56%)" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="supply"
+                        name="Captured Supply (MT)"
+                        fill="hsl(152, 60%, 42%)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="demand"
+                        name="Requested Demand (MT)"
+                        fill="hsl(271, 81%, 56%)"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -625,9 +611,7 @@ export default function CarbonAnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base">Shipment & Hazmat Lifecycle Pipeline</CardTitle>
-                  <CardDescription>
-                    Tracking tons through the 6 statutory custody-transfer stages
-                  </CardDescription>
+                  <CardDescription>Tracking tons through the 6 statutory custody-transfer stages</CardDescription>
                 </div>
                 <Badge className="bg-blue-600 text-white">Cryogenic Fleet</Badge>
               </div>
