@@ -6,6 +6,17 @@
 
 **Live application:** [https://hackout-carbon-bridge.vercel.app/](https://hackout-carbon-bridge.vercel.app/)
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/Screenshot%20(2158).png" width="800">
+  <img src="assets/screenshots/Screenshot%20(2159).png" width="800">
+  <img src="assets/screenshots/Screenshot%20(2160).png" width="800">
+  <img src="assets/screenshots/Screenshot%20(2161).png" width="800">
+  <img src="assets/screenshots/Screenshot%20(2162).png" width="800">
+  <img src="assets/screenshots/Screenshot%20(2163).png" width="800">
+</p>
+
 ## Why Carbon Bridge
 
 Captured carbon is often treated as a cost or waste stream because suppliers, end users, transporters, and oversight bodies operate separately. Carbon Bridge creates a shared marketplace that helps organizations discover compatible supply, make a commercial agreement, arrange compliant transport, and preserve the supporting evidence.
