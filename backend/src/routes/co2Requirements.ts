@@ -53,6 +53,21 @@ router.post('/', authenticateJWT, requireRole(['CO2_BUYER', 'ADMIN']), async (re
       delivery_deadline,
     } = req.body;
 
+    // Date constraint: deadline must be in the future
+    const today = new Date().toISOString().split('T')[0];
+    if (delivery_deadline && delivery_deadline < today) {
+      res.status(400).json({ error: 'Delivery deadline cannot be in the past' });
+      return;
+    }
+    if (Number(required_quantity) <= 0) {
+      res.status(400).json({ error: 'Required quantity must be positive' });
+      return;
+    }
+    if (Number(max_price) <= 0) {
+      res.status(400).json({ error: 'Maximum price must be positive' });
+      return;
+    }
+
     const { data, error } = await supabase
       .from('demand_requests')
       .insert({

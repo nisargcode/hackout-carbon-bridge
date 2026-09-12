@@ -17,7 +17,7 @@ export default function TransactionsPage() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from("contracts")
-          .select("*, seller:supplier_id(name), buyer:buyer_id(name)")
+          .select("*, seller:companies!seller_id(name), buyer:companies!buyer_id(name)")
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -70,7 +70,11 @@ export default function TransactionsPage() {
       ) : (
         <div className="space-y-3">
           {transactions.map((tx) => {
-            const val = (parseFloat(tx.total_quantity) || 0) * (parseFloat(tx.unit_price) || 0);
+            const buyer: any = tx.buyer;
+            const seller: any = tx.seller;
+            const buyerName = (Array.isArray(buyer) ? buyer[0]?.name : buyer?.name) || "Buyer";
+            const sellerName = (Array.isArray(seller) ? seller[0]?.name : seller?.name) || "Seller";
+            const val = parseFloat(tx.total_value) || (parseFloat(tx.quantity) || 0) * (parseFloat(tx.unit_price) || 0);
 
             return (
               <Card key={tx.contract_id} className="hover:border-primary/40 transition-colors">
@@ -79,7 +83,7 @@ export default function TransactionsPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">
-                          {tx.seller?.name || "Seller"} ➔ {tx.buyer?.name || "Buyer"}
+                          {sellerName} ➔ {buyerName}
                         </span>
                         <Badge variant="outline" className="text-xs">
                           {tx.contract_id.slice(0, 8)}
@@ -87,7 +91,7 @@ export default function TransactionsPage() {
                       </div>
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-4">
                         <span>
-                          Volume: <strong className="text-foreground">{tx.total_quantity} tons</strong>
+                          Volume: <strong className="text-foreground">{tx.quantity} tons</strong>
                         </span>
                         <span>
                           Value: <strong className="text-foreground">₹{val.toLocaleString()}</strong>

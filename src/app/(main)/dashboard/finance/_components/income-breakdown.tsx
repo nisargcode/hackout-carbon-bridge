@@ -28,7 +28,8 @@ export function IncomeBreakdown() {
         
         data.forEach(c => {
           const val = Number(c.total_value);
-          const name = c.buyer?.name || "Unknown Buyer";
+          const buyer: any = c.buyer;
+          const name = (Array.isArray(buyer) ? buyer[0]?.name : buyer?.name) || "Unknown Buyer";
           buyerMap[name] = (buyerMap[name] || 0) + val;
           total += val;
         });
