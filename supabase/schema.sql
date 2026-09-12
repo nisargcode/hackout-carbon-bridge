@@ -268,3 +268,29 @@ INSERT INTO public.shipments (shipment_id, supplier_id, buyer_id, logistics_prov
 VALUES
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', '55555555-5555-5555-5555-555555555555', 200, 'Mumbai, Maharashtra', 'Pune, Maharashtra', '{"waypoints":["Panvel","Khopoli","Lonavala"]}', 150.0, 38000, NOW() + INTERVAL '2 days', 'IN_TRANSIT')
 ON CONFLICT (shipment_id) DO NOTHING;
+
+-- 13. MESSAGES / PEER-TO-PEER INDUSTRIAL MAIL
+CREATE TABLE IF NOT EXISTS public.messages (
+  message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sender_id UUID REFERENCES public.companies(company_id) ON DELETE SET NULL,
+  sender_name VARCHAR(255) NOT NULL,
+  sender_email VARCHAR(255) NOT NULL,
+  recipient_id UUID REFERENCES public.companies(company_id) ON DELETE SET NULL,
+  recipient_name VARCHAR(255) NOT NULL,
+  recipient_email VARCHAR(255) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  folder VARCHAR(50) DEFAULT 'inbox', -- inbox, sent, drafts, archive, trash
+  is_read BOOLEAN DEFAULT false,
+  is_pinned BOOLEAN DEFAULT false,
+  is_priority BOOLEAN DEFAULT false,
+  labels JSONB DEFAULT '["trade"]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed initial message
+INSERT INTO public.messages (sender_id, sender_name, sender_email, recipient_id, recipient_name, recipient_email, subject, body, folder, is_read, is_pinned, is_priority, labels)
+VALUES 
+  ('22222222-2222-2222-2222-222222222222', 'Tata Steel Jamshedpur', 'carbon@tatasteel.com', NULL, 'All Traders', 'marketplace@carbonbridge.io', 'CO2 Offtake Confirmation & Purity Spec Sheet', 'Hello, We have reviewed recent demand requisitions for industrial-grade liquid CO2 (99.2% purity). Attached is our Vimta Labs batch assay certificate for Q3. Please confirm if your transport logistics partner is cryo-equipped for loading at our Jamshedpur terminal on Monday.\n\nRegards,\nRajiv Verma\nHead of Industrial Decarbonization, Tata Steel', 'inbox', true, true, true, '["important", "contract"]'),
+  ('55555555-5555-5555-5555-555555555555', 'CryoTrans Logistics', 'dispatch@cryotrans.in', NULL, 'All Traders', 'marketplace@carbonbridge.io', 'Dispatch Schedule: Cryogenic Tanker Fleet #CT-402', 'Greetings, We are pleased to confirm that 2 ISO cryogenic tankers (capacity 25 MT each, pressurized at 20 bar) are on standby for Mumbai-Pune and Jamshedpur corridors. Real-time GPS telemetry and temperature logging will be accessible on your Carbon Bridge dashboard.\n\nWarm regards,\nCryoTrans Operations Team', 'inbox', true, false, false, '["logistics"]');
+
