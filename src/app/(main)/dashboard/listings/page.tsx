@@ -218,16 +218,21 @@ export default function ListingsPage() {
                     <CardTitle className="text-base">{l.source_industry || "Industrial CO₂"}</CardTitle>
                     <CardDescription>{l.location}</CardDescription>
                   </div>
-                  <Badge
-                    variant={l.status === "ACTIVE" ? "default" : "outline"}
-                    className={
-                      l.status === "ACTIVE"
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                        : ""
-                    }
-                  >
-                    {l.status}
-                  </Badge>
+                  <div className="flex gap-2 items-center">
+                    {(l.certification as any)?.verified && (
+                      <Badge className="bg-blue-600 text-white">Verified</Badge>
+                    )}
+                    <Badge
+                      variant={l.status === "ACTIVE" ? "default" : "outline"}
+                      className={
+                        l.status === "ACTIVE"
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                          : ""
+                      }
+                    >
+                      {l.status}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">

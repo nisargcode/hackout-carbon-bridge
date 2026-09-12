@@ -63,6 +63,10 @@ export default function VerificationPage() {
       toast.error("Please enter the certifying authority name");
       return;
     }
+    if (!company?.company_id) {
+      toast.error("Company profile not loaded. Please try again.");
+      return;
+    }
 
     try {
       const supabase = createClient();

@@ -1,6 +1,7 @@
 "use client";
 
 import { Factory, ShoppingBag, ArrowLeftRight, Check, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +22,8 @@ export function RoleSwitcher() {
   const isSeller = companyType === "EMITTER";
   const isBuyer = companyType === "CO2_BUYER";
 
+  const router = useRouter();
+
   const handleRoleSwitch = async (targetRole: CompanyType) => {
     if (targetRole === companyType) return;
     const res = await switchRole(targetRole);
@@ -29,6 +32,8 @@ export function RoleSwitcher() {
     } else {
       const label = targetRole === "EMITTER" ? "Seller (CO₂ Emitter)" : targetRole === "CO2_BUYER" ? "Buyer (CO₂ Offtaker)" : targetRole;
       toast.success(`Switched to ${label} mode!`);
+      router.push("/dashboard");
+      router.refresh();
     }
   };
 

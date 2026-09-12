@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -43,6 +44,7 @@ const schema = z.object({
   availability_end: z.string().min(1),
   minimum_order: z.coerce.number().positive(),
   asking_price: z.coerce.number().positive(),
+  is_verified: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -69,11 +71,12 @@ export default function NewSupplyPage() {
       return;
     }
 
+    const { is_verified, ...dbData } = data;
     const { error } = await supabase.from("co2_supplies").insert({
-      ...data,
+      ...dbData,
       emitter_id: company.company_id,
       status: "ACTIVE",
-      certification: {},
+      certification: { verified: is_verified },
     });
 
     if (error) {
@@ -339,6 +342,36 @@ export default function NewSupplyPage() {
                       <Input type="number" placeholder="50" {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Verification</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="is_verified"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Publish as Verified Listing
+                      </FormLabel>
+                      <FormDescription>
+                        This will attach a verified tag to your listing. Buyers trust verified listings more.
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />

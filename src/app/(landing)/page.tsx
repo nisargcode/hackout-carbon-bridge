@@ -23,7 +23,7 @@ export default function LandingPage() {
 
   return (
     // Landing page is ALWAYS light — no dark mode, no data-theme-mode attribute changes here.
-    <div className="min-h-screen bg-white text-foreground" style={{ colorScheme: "light" }}>
+    <div className="min-h-screen bg-white text-black" style={{ colorScheme: "light" }}>
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-50 border-b border-border bg-white">
         <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-6">
@@ -66,10 +66,10 @@ export default function LandingPage() {
           {/* Left: copy */}
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
-              <h1 className="font-bold text-5xl leading-tight tracking-tight text-foreground lg:text-6xl">
+              <h1 className="font-bold text-5xl leading-tight tracking-tight text-black lg:text-6xl">
                 CO₂ marketplace
               </h1>
-              <p className="max-w-md text-lg text-muted-foreground leading-relaxed">
+              <p className="max-w-md text-lg text-slate-600 leading-relaxed">
                 A marketplace that turns captured CO₂ into a traceable, discoverable and tradeable
                 industrial resource.
               </p>
@@ -94,7 +94,7 @@ export default function LandingPage() {
             </div>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
+            <div className="flex flex-wrap items-center gap-6 text-slate-600 text-sm">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500" />
                 Verified CO₂ Sources
@@ -135,8 +135,8 @@ export default function LandingPage() {
               { label: "Avg Match Score", value: "94%" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <p className="font-bold text-3xl text-foreground">{stat.value}</p>
-                <p className="mt-1 text-muted-foreground text-sm">{stat.label}</p>
+                <p className="font-bold text-3xl text-black">{stat.value}</p>
+                <p className="mt-1 text-slate-600 text-sm">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
 
         {/* ─── Feature highlights ─── */}
         <section className="py-16">
-          <h2 className="mb-10 text-center font-bold text-3xl text-foreground">
+          <h2 className="mb-10 text-center font-bold text-3xl text-black">
             Everything you need to trade CO₂
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
@@ -185,8 +185,8 @@ export default function LandingPage() {
                 className="rounded-xl border border-border bg-card p-6 transition-shadow hover:shadow-md"
               >
                 <div className="mb-3 text-3xl">{f.icon}</div>
-                <h3 className="mb-2 font-semibold text-foreground">{f.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="mb-2 font-semibold text-black">{f.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -195,10 +195,10 @@ export default function LandingPage() {
         {/* ─── CTA ─── */}
         <section className="py-16 text-center">
           <div className="rounded-2xl border border-border bg-card px-8 py-12">
-            <h2 className="mb-4 font-bold text-3xl text-foreground">
+            <h2 className="mb-4 font-bold text-3xl text-black">
               Ready to turn carbon into value?
             </h2>
-            <p className="mb-8 text-muted-foreground">
+            <p className="mb-8 text-slate-600">
               Join the circular carbon economy. List your CO₂ or find your next supplier.
             </p>
             <Button size="lg" className="rounded-full px-10 text-base" onClick={openRegister}>
@@ -210,7 +210,7 @@ export default function LandingPage() {
 
       {/* ─── Footer ─── */}
       <footer className="border-t border-border bg-white py-6">
-        <div className="mx-auto max-w-screen-xl px-6 text-center text-muted-foreground text-sm">
+        <div className="mx-auto max-w-screen-xl px-6 text-center text-slate-600 text-sm">
           {APP_CONFIG.copyright} All rights reserved.
         </div>
       </footer>
