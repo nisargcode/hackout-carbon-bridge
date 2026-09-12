@@ -35,14 +35,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchCompany = async (userId: string) => {
+  const fetchCompany = async (currentUser: User) => {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("companies")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", currentUser.id)
         .single();
-      if (!error && data) {
+      
+      if (!data) {
+        // Auto-create company for Google OAuth users or missing profiles
+        const defaultName = currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || "New Company";
+        const newCompany = {
+          user_id: currentUser.id,
+          name: defaultName,
+          company_type: currentUser.user_metadata?.company_type || "EMITTER",
+          industry: "General",
+          location: "Global",
+          verification_status: false,
+          sustainability_score: 85.0,
+          contact_details: { email: currentUser.email },
+        };
+        const { data: createdData, error: createError } = await supabase
+          .from("companies")
+          .insert(newCompany)
+          .select()
+          .single();
+          
+        if (!createError && createdData) {
+          data = createdData;
+        }
+      }
+
+      if (data) {
         setCompany(data);
       } else {
         setCompany(null);
@@ -53,8 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshCompany = async () => {
-    if (user?.id) {
-      await fetchCompany(user.id);
+    if (user) {
+      await fetchCompany(user);
     }
   };
 
@@ -63,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchCompany(session.user.id).finally(() => setIsLoading(false));
+        fetchCompany(session.user).finally(() => setIsLoading(false));
       } else {
         setIsLoading(false);
       }
@@ -77,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchCompany(session.user.id);
+        fetchCompany(session.user);
       } else {
         setCompany(null);
       }
