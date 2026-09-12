@@ -37,48 +37,48 @@ I have just given starting point go on and build the whole project with backend 
 ## Project To-Do List
 
 ### Phase 1: Setup
-- [ ] Copy theme-template files into main project (components, styles, lib, stores, scripts, config)
+- [x] Copy theme-template files into main project (components, styles, lib, stores, scripts, config)
 - [ ] Setup Supabase project + run SQL schema migrations
-- [ ] Setup backend folder (`backend/`) with Node.js + Express + TypeScript
+- [x] Setup backend folder (`backend/`) with Node.js + Express + TypeScript
 
 ### Phase 2: Auth & Landing
-- [ ] Supabase Auth integration (email signup/login)
-- [ ] Role assignment on registration (EMITTER, CO2_BUYER, LOGISTICS_PROVIDER, REGULATOR, ADMIN)
-- [ ] Landing page (light-mode only, hero section, Login/Signup dialog)
+- [x] Supabase Auth integration (email signup/login)
+- [x] Role assignment on registration (EMITTER, CO2_BUYER, LOGISTICS_PROVIDER, REGULATOR, ADMIN)
+- [x] Landing page (light-mode only, hero section, Login/Signup dialog)
 
 ### Phase 3: Dashboard Shell
-- [ ] Dashboard layout (sidebar + header + content)
-- [ ] Role-based sidebar navigation (Emitter, Buyer, Logistics, Regulator nav items)
-- [ ] Dark mode toggle (ThemeSwitcher) in header
+- [x] Dashboard layout (sidebar + header + content)
+- [x] Role-based sidebar navigation (Emitter, Buyer, Logistics, Regulator nav items)
+- [x] Dark mode toggle (ThemeSwitcher) in header
 
 ### Phase 4: Emitter (Seller) Module
-- [ ] Emitter dashboard (metrics: Captured, Sold, Revenue, Unused, Buyers)
+- [x] Emitter dashboard (metrics: Captured, Sold, Revenue, Unused, Buyers)
 - [ ] Create/Edit CO2 Supply form
 - [ ] Manage listings page
 
 ### Phase 5: Buyer Module
-- [ ] Buyer dashboard (metrics: Required, Suppliers, Avg Price, Savings, Deliveries)
+- [x] Buyer dashboard (metrics: Required, Suppliers, Avg Price, Savings, Deliveries)
 - [ ] Create Demand Request form
 - [ ] Browse marketplace / view AI matches
 
 ### Phase 6: Core Engines (Backend)
-- [ ] Matching Engine (weighted score algorithm)
-- [ ] Dynamic Pricing (BUY_NOW, QUOTE, BID, NEGOTIATE, CONTRACT)
-- [ ] Contract creation & management
+- [x] Matching Engine (weighted score algorithm)
+- [x] Dynamic Pricing (BUY_NOW, QUOTE, BID, NEGOTIATE, CONTRACT)
+- [x] Contract creation & management
 
 ### Phase 7: Logistics Module
-- [ ] Logistics provider dashboard (job board, bidding)
-- [ ] Shipment tracking (status: MATCHED → BOOKED → PICKED_UP → IN_TRANSIT → DELIVERED → VERIFIED)
+- [x] Logistics provider dashboard (job board, bidding)
+- [x] Shipment tracking (status: MATCHED → BOOKED → PICKED_UP → IN_TRANSIT → DELIVERED → VERIFIED)
 
 ### Phase 8: Verification & Regulator
-- [ ] Certificate upload/view
-- [ ] Regulator oversight dashboard
+- [x] Certificate upload/view
+- [x] Regulator oversight dashboard
 
 ### Phase 9: Reputation System
-- [ ] Reputation score cards (Reliability, Quality, Delivery, Documentation)
+- [x] Reputation score cards (Reliability, Quality, Delivery, Documentation)
 
 ### Phase 10: Deployment
 - [ ] Deploy Supabase schema
 - [ ] Deploy backend to Render
-- [ ] Deploy frontend to Vercel
-- [ ] Write deployment guide for user
+- [x] Deploy frontend to Vercel
+- [x] Write deployment guide for user
