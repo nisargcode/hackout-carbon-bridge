@@ -1,41 +1,34 @@
-"use client";
-
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { Package, DollarSign, Users, TrendingUp, Clock, PlusCircle, ArrowRight, BarChart3 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { 
+  Package, DollarSign, FileText, Award,
+  Clock, Bell, Activity, ArrowRight,
+  CheckCircle2, AlertCircle, ShoppingCart, MessageSquare
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { format, parseISO } from "date-fns";
 
 export function EmitterDashboard() {
   const { company } = useAuth();
   const [loading, setLoading] = useState(true);
+  
   const [stats, setStats] = useState({
-    totalCaptured: 0,
-    totalSold: 0,
-    unusedCapacity: 0,
-    revenue: 0,
-    activeBuyers: 0,
-    utilizationRate: 0,
-    avgSellingPrice: 0,
+    activeListings: 0,
+    listedVolume: 0,
+    executedContracts: 0,
+    esgScore: 0,
   });
-  const [recentBids, setRecentBids] = useState<any[]>([]);
-  const [supplies, setSupplies] = useState<any[]>([]);
+  
+  const [pendingBids, setPendingBids] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
+  const [timeline, setTimeline] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -46,78 +39,111 @@ export function EmitterDashboard() {
       try {
         const supabase = createClient();
 
-        // 1. Fetch emitter's CO2 supplies
+        // 1. Fetch Emitter's CO2 supplies
         const { data: supplyData } = await supabase
           .from("co2_supplies")
           .select("*")
           .eq("emitter_id", company.company_id);
 
-        const currentSupplies = supplyData || [];
-        setSupplies(currentSupplies);
+        const supplies = supplyData || [];
 
-        // 2. Fetch contracts where this company is the supplier (seller)
+        // 2. Fetch Contracts (Seller)
         const { data: contractData } = await supabase
           .from("contracts")
-          .select("*")
-          .eq("seller_id", company.company_id);
+          .select("*, companies:buyer_id(name)")
+          .eq("seller_id", company.company_id)
+          .order("created_at", { ascending: false });
 
         const currentContracts = contractData || [];
         setContracts(currentContracts);
 
-        // 3. Fetch bids on this emitter's supplies
-        const supplyIds = currentSupplies.map((s) => s.supply_id);
+        // 3. Fetch Reputation Score
+        const { data: repData } = await supabase
+          .from("reputation_scores")
+          .select("overall_score")
+          .eq("company_id", company.company_id)
+          .single();
+
+        // 4. Fetch Pending Bids on Emitter's supplies
+        const supplyIds = supplies.map((s) => s.supply_id);
         let bids: any[] = [];
         if (supplyIds.length > 0) {
           const { data: bidData } = await supabase
             .from("bids")
             .select("*, companies:bidder_id(name)")
             .in("supply_id", supplyIds)
+            .eq("status", "PENDING")
             .order("created_at", { ascending: false })
             .limit(5);
           bids = bidData || [];
         }
-        setRecentBids(bids);
+        setPendingBids(bids);
 
-        // Calculate genuine metrics
-        const totalCap = currentSupplies.reduce(
-          (sum, s) => sum + (parseFloat(s.available_quantity) || 0),
-          0
-        );
-        const totalSold = currentContracts.reduce(
-          (sum, c) => sum + (parseFloat(c.quantity) || 0),
-          0
-        );
-        const totalRev = currentContracts.reduce(
-          (sum, c) =>
-            sum +
-            (parseFloat(c.quantity) || 0) * (parseFloat(c.unit_price) || 0),
-          0
-        );
-        const uniqueBuyers = new Set(currentContracts.map((c) => c.buyer_id)).size;
-        const avgPrice =
-          currentContracts.length > 0
-            ? Math.round(totalRev / (totalSold || 1))
-            : currentSupplies.length > 0
-            ? Math.round(
-                currentSupplies.reduce(
-                  (acc, s) => acc + (parseFloat(s.asking_price) || 0),
-                  0
-                ) / currentSupplies.length
-              )
-            : 0;
+        // 5. Fetch Notifications
+        const { data: notifData } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("recipient_id", company.company_id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        
+        setNotifications(notifData || []);
 
-        const utilRate =
-          totalCap > 0 ? Math.min(100, Math.round((totalSold / totalCap) * 100)) : 0;
-
+        // Stats calculation
+        const activeListings = supplies.filter(s => s.status === "ACTIVE");
+        const listedVolume = activeListings.reduce((sum, s) => sum + (parseFloat(s.available_quantity) || 0), 0);
+        
         setStats({
-          totalCaptured: totalCap,
-          totalSold: totalSold,
-          unusedCapacity: Math.max(0, totalCap - totalSold),
-          revenue: totalRev,
-          activeBuyers: uniqueBuyers,
-          utilizationRate: utilRate,
-          avgSellingPrice: avgPrice,
+          activeListings: activeListings.length,
+          listedVolume,
+          executedContracts: currentContracts.length,
+          esgScore: repData?.overall_score || 0,
         });
+
+        // 6. Build Timeline
+        // Combine supplies, contracts, and bids into a timeline
+        let events: any[] = [];
+        
+        supplies.forEach(s => {
+          events.push({
+            id: s.supply_id,
+            date: s.created_at,
+            title: `Listed ${s.available_quantity}t CO2`,
+            desc: `Status: ${s.status}`,
+            type: "supply",
+            icon: Package,
+            link: "/dashboard/listings",
+          });
+        });
+
+        currentContracts.forEach(c => {
+          events.push({
+            id: c.contract_id,
+            date: c.created_at,
+            title: `Sold ${c.quantity}t CO2`,
+            desc: `Contract with ${c.companies?.name || "Buyer"}`,
+            type: "contract",
+            icon: CheckCircle2,
+            link: "/dashboard/contracts",
+          });
+        });
+
+        bids.forEach(b => {
+          events.push({
+            id: b.bid_id,
+            date: b.created_at,
+            title: `Received bid for ${b.quantity}t`,
+            desc: `From ${b.companies?.name || "Buyer"}`,
+            type: "bid",
+            icon: MessageSquare,
+            link: "/dashboard/bids",
+          });
+        });
+
+        // Sort descending
+        events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setTimeline(events);
+
       } catch (err) {
         console.error("Failed to load emitter stats:", err);
       } finally {
@@ -128,324 +154,172 @@ export function EmitterDashboard() {
     loadData();
   }, [company?.company_id]);
 
-  // Interactive chart data mapping live supplies and contracts
-  const chartData = useMemo(() => {
-    if (supplies.length === 0) {
-      return [
-        { name: "Batch #1", available: 0, price: 0 },
-      ];
-    }
-
-    return supplies.map((s, idx) => ({
-      name: `${s.physical_state || "Gas"} (${s.purity_percentage || 98}%)`,
-      available: Number(s.available_quantity) || 0,
-      price: Number(s.asking_price) || 0,
-    }));
-  }, [supplies]);
-
   if (loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
-          ))}
+        <div className="grid gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       </div>
     );
   }
 
-  const metricsCards = [
-    {
-      label: "CO? Captured Available",
-      value: `${stats.totalCaptured.toLocaleString()} tons`,
-      icon: Package,
-      change: `${supplies.length} listing${supplies.length === 1 ? "" : "s"}`,
-    },
-    {
-      label: "CO? Sold",
-      value: `${stats.totalSold.toLocaleString()} tons`,
-      icon: TrendingUp,
-      change: `${stats.utilizationRate}% utilized`,
-    },
-    {
-      label: "Gross Revenue",
-      value:
-        stats.revenue > 100000
-          ? `?${(stats.revenue / 100000).toFixed(2)}L`
-          : `?${stats.revenue.toLocaleString()}`,
-      icon: DollarSign,
-      change: "Settled contracts",
-    },
-    {
-      label: "Active Buyers",
-      value: stats.activeBuyers.toString(),
-      icon: Users,
-      change: "Commercial partners",
-    },
+  const topMetrics = [
+    { label: "Active Listings", value: stats.activeListings, icon: Package },
+    { label: "Listed Volume", value: `${stats.listedVolume.toLocaleString()} MT`, icon: Activity },
+    { label: "Executed Contracts", value: stats.executedContracts, icon: FileText },
+    { label: "ESG Reputed Score", value: `${stats.esgScore}/100`, icon: Award },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-bold text-2xl text-foreground">
-            Welcome back, {company?.name ?? "Industrial Emitter"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Real-time status of your industrial carbon capture and commercial listings.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/listings/new">
-            <PlusCircle className="h-4 w-4 mr-1.5" />
-            List New CO? Supply
-          </Link>
-        </Button>
+      <div>
+        <h1 className="font-bold text-2xl text-foreground">Personal Dashboard</h1>
+        <p className="text-muted-foreground text-sm mt-1">Overview of your industrial carbon capture and commercial listings.</p>
       </div>
 
-      {/* Metric cards */}
+      {/* TOP: METRICS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {metricsCards.map((m) => {
+        {topMetrics.map((m) => {
           const Icon = m.icon;
           return (
             <Card key={m.label}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {m.label}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{m.label}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="font-bold text-2xl">{m.value}</div>
-                <p className="text-muted-foreground text-xs mt-1">{m.change}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Extra stats row */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* MIDDLE: PENDING REQUESTS & NOTIFICATIONS */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Unused Capacity
-            </CardTitle>
+          <CardHeader>
+            <CardTitle className="text-lg">Pending Requests</CardTitle>
+            <CardDescription>Bids awaiting your approval</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl">
-              {stats.unusedCapacity.toLocaleString()} tons
-            </div>
-            <Progress value={stats.utilizationRate} className="mt-2 h-2" />
-            <p className="text-muted-foreground text-xs mt-1">
-              {stats.utilizationRate}% utilization rate
-            </p>
+            {pendingBids.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No pending requests.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pendingBids.map(bid => (
+                  <div key={bid.bid_id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                    <div>
+                      <p className="font-medium text-sm">{bid.companies?.name || "Buyer"}</p>
+                      <p className="text-xs text-muted-foreground">{bid.quantity} tons @ ₹{bid.amount}/ton</p>
+                    </div>
+                    <Button size="sm" asChild variant="outline">
+                      <Link href="/dashboard/bids">Review</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Avg Selling Price
-            </CardTitle>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Notifications</CardTitle>
+            <CardDescription>System alerts and updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl">
-              {stats.avgSellingPrice > 0
-                ? `?${stats.avgSellingPrice.toLocaleString()}/ton`
-                : "?0/ton"}
-            </div>
-            <p className="text-muted-foreground text-xs mt-1">
-              Calculated from current listings & contracts
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Incoming Bids
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-bold text-2xl">{recentBids.length}</div>
-            <p className="text-muted-foreground text-xs mt-1">
-              {recentBids.filter((b) => b.status === "PENDING").length} awaiting review
-            </p>
+            {notifications.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">You are all caught up.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {notifications.map(notif => (
+                  <div key={notif.notification_id} className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0">
+                    <AlertCircle className="h-4 w-4 mt-0.5 text-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium">{notif.title}</p>
+                      <p className="text-xs text-muted-foreground">{notif.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Interactive Supply Inventory & Pricing Chart */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-emerald-600" />
-                Live CO? Supply Batches: Volume vs Asking Price
-              </CardTitle>
-              <CardDescription>
-                Interactive visualization of your listed batches from live database records
-              </CardDescription>
-            </div>
-            <Badge variant="outline">Live Database</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-72 w-full">
-            {supplies.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm space-y-2">
-                <Package className="h-8 w-8 stroke-1" />
-                <p>No active CO? supply listings to graph yet.</p>
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/dashboard/listings/new">Add First Listing</Link>
-                </Button>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="left" orientation="left" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="right" orientation="right" stroke="hsl(38, 92%, 50%)" tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    formatter={(val: any, name: any) => [
-                      name === "Available Volume (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val).toLocaleString()}/MT`,
-                      name,
-                    ]}
-                    contentStyle={{
-                      backgroundColor: "var(--background)",
-                      borderColor: "var(--border)",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Legend verticalAlign="top" height={36} />
-                  <Bar yAxisId="left" dataKey="available" name="Available Volume (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="right" dataKey="price" name="Asking Price (?/MT)" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Supplies and Bids */}
+      {/* BOTTOM: TRANSACTION HISTORY & TIMELINE */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Active Listings */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle>Your Active CO? Supplies</CardTitle>
-              <CardDescription>Live listings visible on the marketplace</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/listings">
-                View All
-                <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
-            </Button>
+        <Card className="flex flex-col h-[400px]">
+          <CardHeader>
+            <CardTitle className="text-lg">Transaction History</CardTitle>
+            <CardDescription>Your recently executed contracts</CardDescription>
           </CardHeader>
-          <CardContent>
-            {supplies.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground space-y-3">
-                <Package className="h-8 w-8 mx-auto stroke-1" />
-                <p className="text-sm">No active CO? supply listings yet.</p>
-                <Button size="sm" asChild>
-                  <Link href="/dashboard/listings/new">Create First Listing</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {supplies.slice(0, 4).map((s) => (
-                  <div
-                    key={s.supply_id}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">
-                        {s.available_quantity} tons ({s.physical_state || "Gas"})
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        Purity: {s.purity_percentage}% ? {s.location}
-                      </p>
+          <CardContent className="flex-1 overflow-hidden p-0">
+            <ScrollArea className="h-full px-6 pb-6">
+              {contracts.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No transaction history yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {contracts.map(c => (
+                    <div key={c.contract_id} className="flex flex-col gap-1 border border-border p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-sm">{c.companies?.name || "Buyer"}</span>
+                        <span className="text-xs text-muted-foreground">{format(parseISO(c.created_at), "MMM d, yyyy")}</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm">{c.quantity} tons</span>
+                        <span className="text-sm font-medium text-emerald-600">₹{c.total_value?.toLocaleString()}</span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-sm">?{s.asking_price}/t</div>
-                      <Badge variant="outline" className="text-[10px]">
-                        {s.status || "AVAILABLE"}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
 
-        {/* Recent Bids */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle>Recent Bids & Negotiations</CardTitle>
-              <CardDescription>Purchase offers from verified buyers</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/bids">
-                View All
-                <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
-            </Button>
+        <Card className="flex flex-col h-[400px]">
+          <CardHeader>
+            <CardTitle className="text-lg">Interactive Timeline</CardTitle>
+            <CardDescription>Your recent marketplace actions</CardDescription>
           </CardHeader>
-          <CardContent>
-            {recentBids.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground space-y-2">
-                <Clock className="h-8 w-8 mx-auto stroke-1" />
-                <p className="text-sm">No incoming bids received yet.</p>
-                <p className="text-xs">
-                  Offers placed by buyers on your listings will appear here.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentBids.map((bid) => (
-                  <div
-                    key={bid.bid_id}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">
-                        {bid.companies?.name || "Industrial Buyer"}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {bid.quantity} tons ? ?{Number(bid.amount).toLocaleString()}/ton
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        bid.status === "ACCEPTED"
-                          ? "default"
-                          : bid.status === "REJECTED"
-                          ? "destructive"
-                          : "outline"
-                      }
-                      className={
-                        bid.status === "ACCEPTED"
-                          ? "bg-emerald-600 text-white hover:bg-emerald-600"
-                          : ""
-                      }
-                    >
-                      {bid.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
+          <CardContent className="flex-1 overflow-hidden p-0">
+            <ScrollArea className="h-full px-6 pb-6">
+              {timeline.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No recent activity.</p>
+                </div>
+              ) : (
+                <div className="relative border-l border-border ml-3 mt-2 space-y-6 pb-4">
+                  {timeline.map((event, idx) => {
+                    const Icon = event.icon;
+                    return (
+                      <Link href={event.link} key={idx} className="block relative pl-6 hover:bg-muted/50 rounded-r-lg transition-colors p-2 -ml-2 -mt-2 group">
+                        <div className="absolute w-6 h-6 bg-background border border-border rounded-full -left-[14px] top-2 flex items-center justify-center group-hover:border-primary transition-colors">
+                          <Icon className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-0.5">{format(parseISO(event.date), "MMM d, yyyy")}</p>
+                        <p className="text-sm font-medium">{event.title}</p>
+                        <p className="text-xs text-muted-foreground">{event.desc}</p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
