@@ -4,7 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "cn";
-import { ChevronRight, MailIcon, PlusCircleIcon } from "lucide-react";
+import {
+  ChevronRight,
+  MailIcon,
+  PlusCircleIcon,
+  Factory,
+  ShoppingBag,
+  Sparkles,
+  ShieldCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,6 +21,8 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -107,20 +117,70 @@ export function NavMain({ items }: NavMainProps) {
         <SidebarGroupContent className="flex flex-col gap-2">
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center gap-2">
-              <SidebarMenuButton
-                tooltip="Quick Create"
-                className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-              >
-                <PlusCircleIcon />
-                <span>Quick Create</span>
-              </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip="Quick Create"
+                    className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground cursor-pointer"
+                  >
+                    <PlusCircleIcon />
+                    <span>Quick Create</span>
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="start" side="bottom" sideOffset={4}>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold">
+                    Quick Actions
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/listings/new" className="flex items-center gap-2.5">
+                      <Factory className="h-4 w-4 text-emerald-600" />
+                      <div>
+                        <p className="font-medium text-xs">List CO₂ Supply</p>
+                        <p className="text-[10px] text-muted-foreground">Post supply for buyers</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/demands/new" className="flex items-center gap-2.5">
+                      <ShoppingBag className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-xs">Post Demand Request</p>
+                        <p className="text-[10px] text-muted-foreground">Request required CO₂ volume</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/marketplace" className="flex items-center gap-2.5">
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                      <div>
+                        <p className="font-medium text-xs">Browse & Bid Now</p>
+                        <p className="text-[10px] text-muted-foreground">Explore active supplies</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/verification" className="flex items-center gap-2.5">
+                      <ShieldCheck className="h-4 w-4 text-purple-600" />
+                      <div>
+                        <p className="font-medium text-xs">Verify Certificate</p>
+                        <p className="text-[10px] text-muted-foreground">Submit purity test & MRV</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
+                asChild
                 size="icon"
-                className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
+                className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0 cursor-pointer"
                 variant="outline"
               >
-                <MailIcon />
-                <span className="sr-only">Inbox</span>
+                <Link href="/dashboard/mail" title="Mail & Communications">
+                  <MailIcon />
+                  <span className="sr-only">Mail & Communications</span>
+                </Link>
               </Button>
             </SidebarMenuItem>
           </SidebarMenu>
