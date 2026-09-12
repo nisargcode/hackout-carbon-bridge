@@ -296,7 +296,7 @@ export default function NewSupplyPage() {
                     <FormItem>
                       <FormLabel>Available From</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" min={new Date().toISOString().split("T")[0]} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,7 +309,7 @@ export default function NewSupplyPage() {
                     <FormItem>
                       <FormLabel>Available Until</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" min={form.watch("availability_start") || new Date().toISOString().split("T")[0]} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

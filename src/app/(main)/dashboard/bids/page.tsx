@@ -83,8 +83,8 @@ export default function BidsPage() {
 
         await supabase.from("contracts").insert({
           supply_id: bid.supply_id,
-          buyer_id: bid.bidder_id,
-          seller_id: company.company_id,
+          buyer_id: bid.bidder_id, // The one who originally placed the bid
+          seller_id: bid.supply?.emitter_id, // The owner of the supply listing
           quantity: qty,
           unit_price: price,
           total_value: qty * price,
@@ -113,31 +113,35 @@ export default function BidsPage() {
             .eq("supply_id", bid.supply_id);
         }
 
-        // 3. Notify Buyer of acceptance
+        const recipientId = bid.bidder_id === company.company_id ? bid.supply?.emitter_id : bid.bidder_id;
+        
+        // 3. Notify other party of acceptance
         await createNotification({
-          recipient_id: bid.bidder_id,
+          recipient_id: recipientId,
           sender_id: company.company_id,
           title: "Bid Approved! Contract Created",
-          message: `${company.name} accepted your offer of ₹${price.toLocaleString()}/t for ${qty} tons of CO₂. The contract is now active!`,
+          message: `${company.name} accepted the offer of ₹${price.toLocaleString()}/t for ${qty} tons of CO₂. The contract is now active!`,
           type: "BID_ACCEPTED",
           reference_id: bid.bid_id,
           reference_type: "bid",
         });
 
-        toast.success("Bid accepted! Contract generated and buyer notified.");
+        toast.success("Bid accepted! Contract generated and other party notified.");
       } else {
-        // Notify Buyer of decline
+        const recipientId = bid.bidder_id === company.company_id ? bid.supply?.emitter_id : bid.bidder_id;
+        
+        // Notify other party of decline
         await createNotification({
-          recipient_id: bid.bidder_id,
+          recipient_id: recipientId,
           sender_id: company.company_id,
           title: "Bid Declined",
-          message: `${company.name} declined your offer of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons.`,
+          message: `${company.name} declined the offer of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons.`,
           type: "BID_REJECTED",
           reference_id: bid.bid_id,
           reference_type: "bid",
         });
 
-        toast.info("Bid declined and buyer notified.");
+        toast.info("Bid declined and other party notified.");
       }
 
       setBids((prev) => prev.map((b) => (b.bid_id === bid.bid_id ? { ...b, status: action } : b)));

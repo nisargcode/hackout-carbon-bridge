@@ -81,6 +81,18 @@ export default function EditListingPage() {
       toast.error("Please fill in required fields");
       return;
     }
+    if (new Date(formState.availability_start) < new Date(new Date().setHours(0, 0, 0, 0))) {
+      toast.error("Available From date cannot be in the past");
+      return;
+    }
+    if (new Date(formState.availability_start) >= new Date(formState.availability_end)) {
+      toast.error("Available Until date must be after Available From date");
+      return;
+    }
+    if (Number(formState.minimum_order) > Number(formState.available_quantity)) {
+      toast.error("Minimum order cannot exceed available quantity");
+      return;
+    }
 
     setSaving(true);
     const { error } = await supabase
@@ -303,6 +315,7 @@ export default function EditListingPage() {
                 <Input
                   id="availability_start"
                   type="date"
+                  min={new Date().toISOString().split("T")[0]}
                   value={formState.availability_start}
                   onChange={(e) => setFormState({ ...formState, availability_start: e.target.value })}
                 />
@@ -313,6 +326,7 @@ export default function EditListingPage() {
                 <Input
                   id="availability_end"
                   type="date"
+                  min={formState.availability_start || new Date().toISOString().split("T")[0]}
                   value={formState.availability_end}
                   onChange={(e) => setFormState({ ...formState, availability_end: e.target.value })}
                 />
