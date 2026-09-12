@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import type { Company, CompanyType } from "@/types";
+import { toast } from "sonner";
 
 interface AuthContextValue {
   user: User | null;
@@ -37,12 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCompany = async (currentUser: User) => {
     try {
-      let { data, error } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .single();
-      
+      let { data, error } = await supabase.from("companies").select("*").eq("user_id", currentUser.id).single();
+
       if (!data) {
         // Auto-create company for Google OAuth users or missing profiles
         const defaultName = currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || "New Company";
@@ -61,9 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .insert(newCompany)
           .select()
           .single();
-          
+
         if (!createError && createdData) {
           data = createdData;
+        } else if (createError) {
+          console.error("Failed to auto-create company:", createError);
+          // Only show toast if it's not a trivial network error
+          toast.error(`Company profile auto-creation failed: ${createError.message}`);
         }
       }
 
@@ -71,8 +72,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCompany(data);
       } else {
         setCompany(null);
+        if (error && error.code !== "PGRST116") {
+          toast.error(`Error loading profile: ${error.message}`);
+        }
       }
-    } catch {
+    } catch (err: any) {
+      console.error("fetchCompany exception:", err);
+      toast.error(`Unexpected error loading profile: ${err.message || "Unknown error"}`);
       setCompany(null);
     }
   };
@@ -84,17 +90,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchCompany(session.user).finally(() => setIsLoading(false));
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchCompany(session.user).finally(() => setIsLoading(false));
+        } else {
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
         setIsLoading(false);
-      }
-    }).catch(() => {
-      setIsLoading(false);
-    });
+      });
 
     const {
       data: { subscription },
