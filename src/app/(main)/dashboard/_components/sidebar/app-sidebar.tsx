@@ -26,7 +26,6 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { SupportCard } from "./support-card";
 
 import { useEffect, useState, useMemo } from "react";
 import { fetchUserNotifications } from "@/lib/notifications";
@@ -128,7 +127,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <SupportCard />
         <NavUser user={currentUser} onSignOut={handleSignOut} />
       </SidebarFooter>
     </Sidebar>

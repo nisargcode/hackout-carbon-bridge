@@ -248,7 +248,7 @@ export default function MatchesPage() {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">Asking Price</p>
-                    <p className="font-medium">₹{m.price.toLocaleString()}/t</p>
+                    <p className="font-medium">Rs. {m.price.toLocaleString()}/t</p>
                   </div>
                 </div>
 

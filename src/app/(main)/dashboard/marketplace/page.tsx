@@ -222,8 +222,8 @@ export default function MarketplacePage() {
           await createNotification({
             recipient_id: selectedSupply.emitter_id,
             sender_id: company.company_id,
-            title: `New Purchase Offer: ₹${price.toLocaleString()}/t`,
-            message: `${company.name || "A buyer"} submitted an offer to purchase ${qty} ${selectedSupply.quantity_unit} of ${selectedSupply.source_industry || "CO₂"} at ₹${price.toLocaleString()}/t.`,
+            title: `New Purchase Offer: Rs. ${price.toLocaleString()}/t`,
+            message: `${company.name || "A buyer"} submitted an offer to purchase ${qty} ${selectedSupply.quantity_unit} of ${selectedSupply.source_industry || "CO₂"} at Rs. ${price.toLocaleString()}/t.`,
             type: "BID_RECEIVED",
             reference_id: insertedBid?.bid_id,
             reference_type: "bid",
@@ -246,7 +246,7 @@ export default function MarketplacePage() {
             ? "Buy-Now order request submitted successfully!"
             : bidType === "REQUEST_QUOTE"
               ? "Quote request submitted to seller!"
-              : `Bid of ₹${price.toLocaleString()}/t submitted successfully!`,
+              : `Bid of Rs. ${price.toLocaleString()}/t submitted successfully!`,
         );
         setBidModalOpen(false);
         setSelectedSupply(null);
@@ -331,7 +331,7 @@ export default function MarketplacePage() {
         {/* Sliders */}
         <div className="md:col-span-2 flex items-center justify-between gap-4 p-2 rounded-lg border bg-muted/20">
           <div className="text-xs text-muted-foreground min-w-28">
-            Max Price: <span className="font-semibold text-foreground">₹{maxPrice[0].toLocaleString()}/t</span>
+            Max Price: <span className="font-semibold text-foreground">Rs. {maxPrice[0].toLocaleString()}/t</span>
           </div>
           <Slider value={maxPrice} onValueChange={setMaxPrice} min={1000} max={15000} step={100} className="flex-1" />
         </div>
@@ -441,7 +441,7 @@ export default function MarketplacePage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Asking Price</p>
-                      <p className="font-semibold mt-0.5 text-primary">₹{price.toLocaleString()}/t</p>
+                      <p className="font-semibold mt-0.5 text-primary">Rs. {price.toLocaleString()}/t</p>
                     </div>
                   </div>
 
@@ -515,7 +515,7 @@ export default function MarketplacePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Seller's Asking Price:</span>
-                  <span className="font-medium">₹{Number(selectedSupply.asking_price).toLocaleString()}/t</span>
+                  <span className="font-medium">Rs. {Number(selectedSupply.asking_price).toLocaleString()}/t</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Minimum Order:</span>
@@ -543,7 +543,7 @@ export default function MarketplacePage() {
               {/* Offered Price */}
               <div className="space-y-2">
                 <Label htmlFor="bid_price">
-                  {bidType === "BUY_NOW" ? "Purchase Price (₹/ton)" : "Offered Price (₹/ton)"}
+                  {bidType === "BUY_NOW" ? "Purchase Price (Rs. /ton)" : "Offered Price (Rs. /ton)"}
                 </Label>
                 <Input
                   id="bid_price"
@@ -561,7 +561,7 @@ export default function MarketplacePage() {
                 <div className="flex items-center justify-between p-2.5 rounded-lg border bg-primary/5 text-sm">
                   <span className="font-medium">Estimated Total Value:</span>
                   <span className="font-bold text-primary">
-                    ₹{(Number(bidQuantity) * Number(bidPrice)).toLocaleString()}
+                    Rs. {(Number(bidQuantity) * Number(bidPrice)).toLocaleString()}
                   </span>
                 </div>
               )}

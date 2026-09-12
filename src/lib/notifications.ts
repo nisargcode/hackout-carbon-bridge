@@ -157,13 +157,13 @@ export async function fetchUserNotifications(companyId: string): Promise<{
             sender_id: bid.bidder_id,
             title:
               bid.status === "PENDING"
-                ? `New Purchase Offer: ₹${Number(bid.amount).toLocaleString()}/t`
+                ? `New Purchase Offer: Rs. ${Number(bid.amount).toLocaleString()}/t`
                 : bid.status === "ACCEPTED"
-                  ? `Offer Accepted: ₹${Number(bid.amount).toLocaleString()}/t`
+                  ? `Offer Accepted: Rs. ${Number(bid.amount).toLocaleString()}/t`
                   : `Offer Declined`,
             message:
               bid.status === "PENDING"
-                ? `${partner} placed an offer to buy ${bid.quantity} tons of ${supply?.source_industry || "CO₂"} at ₹${Number(bid.amount).toLocaleString()}/ton.`
+                ? `${partner} placed an offer to buy ${bid.quantity} tons of ${supply?.source_industry || "CO₂"} at Rs. ${Number(bid.amount).toLocaleString()}/ton.`
                 : bid.status === "ACCEPTED"
                   ? `You accepted the offer from ${partner} for ${bid.quantity} tons. Contract is active.`
                   : `You declined the offer from ${partner}.`,
@@ -214,7 +214,7 @@ export async function fetchUserNotifications(companyId: string): Promise<{
             recipient_id: companyId,
             sender_id: bid.supply?.emitter?.company_id,
             title: `Offer Approved! Trade Confirmed`,
-            message: `${emitterName} approved your purchase bid of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons of CO₂. A binding trade contract has been generated!`,
+            message: `${emitterName} approved your purchase bid of Rs. ${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons of CO₂. A binding trade contract has been generated!`,
             type: "BID_ACCEPTED",
             reference_id: bid.bid_id,
             reference_type: "bid",
@@ -236,7 +236,7 @@ export async function fetchUserNotifications(companyId: string): Promise<{
             recipient_id: companyId,
             sender_id: bid.supply?.emitter?.company_id,
             title: `Offer Declined`,
-            message: `${emitterName} declined your offer of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons. You can browse other supplies on the marketplace.`,
+            message: `${emitterName} declined your offer of Rs. ${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons. You can browse other supplies on the marketplace.`,
             type: "BID_REJECTED",
             reference_id: bid.bid_id,
             reference_type: "bid",

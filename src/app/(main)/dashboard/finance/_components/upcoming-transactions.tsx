@@ -50,7 +50,7 @@ export function UpcomingTransactions() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 className="flex items-baseline text-3xl leading-none tracking-tight">
-              <span className="font-normal">₹{totalActiveValue.toLocaleString()}</span>
+              <span className="font-normal">Rs. {totalActiveValue.toLocaleString()}</span>
             </h2>
             <p className="text-muted-foreground text-sm leading-none">
               Value of <span className="font-medium text-foreground">{contracts.length}</span> recently active contracts
@@ -83,7 +83,7 @@ export function UpcomingTransactions() {
                         : `Receipt from ${sellerName}`}
                     </ItemTitle>
                     <ItemDescription>
-                      ₹{Number(c.total_value).toLocaleString()} · {c.quantity} tons
+                      Rs. {Number(c.total_value).toLocaleString()} · {c.quantity} tons
                     </ItemDescription>
                   </ItemContent>
                   <ItemActions>

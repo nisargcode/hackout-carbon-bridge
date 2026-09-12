@@ -50,7 +50,6 @@ app.use('/api/carbon-tracking', carbonTrackingRoutes);
 app.use('/api/certificates', certificatesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/regulator', regulatorRoutes);
 
 // Global 404 Handler
 app.use((req: Request, res: Response) => {

@@ -25,21 +25,18 @@ export default function LandingPage() {
   const teamMembers = [
     {
       name: "Bhavya Parmar",
-      role: "Full Stack & Carbon Protocol Engineer",
       email: "bhavyaparmar19102007@gmail.com",
       avatarBg: "bg-emerald-600",
       initials: "BP",
     },
     {
       name: "Samarth Vaghela",
-      role: "Backend & Systems Architect",
       email: "samarth7v@gmail.com",
       avatarBg: "bg-teal-600",
       initials: "SV",
     },
     {
       name: "Nisarg Panchal",
-      role: "Lead Frontend & Product Designer",
       email: "nisargpanchal.abc@gmail.com",
       avatarBg: "bg-cyan-700",
       initials: "NP",
@@ -286,7 +283,6 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-lg text-black tracking-tight">{member.name}</h3>
-                      <p className="text-xs font-bold text-emerald-700">{member.role}</p>
                     </div>
                   </div>
                 </div>

@@ -249,7 +249,7 @@ export default function ListingsPage() {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">Price</p>
-                    <p className="font-medium">₹{Number(l.asking_price).toLocaleString()}/t</p>
+                    <p className="font-medium">Rs. {Number(l.asking_price).toLocaleString()}/t</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
@@ -327,7 +327,7 @@ export default function ListingsPage() {
 
               {/* Asking Price */}
               <div className="space-y-2">
-                <Label htmlFor="asking_price">Asking Price (₹/ton)</Label>
+                <Label htmlFor="asking_price">Asking Price (Rs. /ton)</Label>
                 <Input
                   id="asking_price"
                   type="number"

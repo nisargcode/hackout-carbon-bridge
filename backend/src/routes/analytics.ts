@@ -29,10 +29,10 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
           total_captured: totalCaptured,
           total_sold: totalSold,
           unused_capacity: Math.max(0, totalCaptured - totalSold),
-          revenue: totalRev > 100000 ? `₹${(totalRev / 100000).toFixed(1)}L` : `₹${totalRev.toLocaleString()}`,
+          revenue: totalRev > 100000 ? `Rs. ${(totalRev / 100000).toFixed(1)}L` : `Rs. ${totalRev.toLocaleString()}`,
           active_buyers: uniqueBuyers,
           utilization_percentage: totalCaptured > 0 ? Math.round((totalSold / totalCaptured) * 100) : 0,
-          avg_selling_price: avgPrice > 0 ? `₹${avgPrice.toLocaleString()}/ton` : '₹0/ton',
+          avg_selling_price: avgPrice > 0 ? `Rs. ${avgPrice.toLocaleString()}/ton` : 'Rs. 0/ton',
         }
       });
       return;
@@ -58,11 +58,11 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
         data: {
           total_required: totalReq,
           current_suppliers: uniqueSuppliers,
-          avg_price: avgCost > 0 ? `₹${avgCost.toLocaleString()}/ton` : '₹0/ton',
+          avg_price: avgCost > 0 ? `Rs. ${avgCost.toLocaleString()}/ton` : 'Rs. 0/ton',
           active_contracts: activeContracts,
           upcoming_deliveries: upcoming,
           total_utilized: totalUtilized,
-          cost_savings: '₹0',
+          cost_savings: 'Rs. 0',
         }
       });
       return;

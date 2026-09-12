@@ -133,7 +133,7 @@ export default function ContractsPage() {
           </CardHeader>
           <CardContent>
             <div className="font-bold text-2xl">
-              {totalVal > 100000 ? `₹${(totalVal / 100000).toFixed(2)}L` : `₹${totalVal.toLocaleString()}`}
+              {totalVal > 100000 ? `Rs. ${(totalVal / 100000).toFixed(2)}L` : `Rs. ${totalVal.toLocaleString()}`}
             </div>
             <p className="text-muted-foreground text-xs mt-1">Across registered bilateral agreements</p>
           </CardContent>
@@ -211,7 +211,7 @@ export default function ContractsPage() {
                         Contract Ref: {c.contract_id} · Created: {new Date(c.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <div className="font-bold text-lg text-foreground md:text-right">₹{val.toLocaleString()}</div>
+                    <div className="font-bold text-lg text-foreground md:text-right">Rs. {val.toLocaleString()}</div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -227,7 +227,7 @@ export default function ContractsPage() {
                     <div>
                       <p className="text-muted-foreground text-xs">Volume & Price</p>
                       <p className="font-medium">
-                        {qty} tons @ ₹{price}/t
+                        {qty} tons @ Rs. {price}/t
                       </p>
                     </div>
                     <div>

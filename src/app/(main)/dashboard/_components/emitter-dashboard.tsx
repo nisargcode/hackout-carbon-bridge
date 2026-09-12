@@ -232,7 +232,7 @@ export function EmitterDashboard() {
                     <div>
                       <p className="font-medium text-sm">{bid.companies?.name || "Buyer"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {bid.quantity} tons @ ₹{bid.amount}/ton
+                        {bid.quantity} tons @ Rs. {bid.amount}/ton
                       </p>
                     </div>
                     <Button size="sm" asChild variant="outline">
@@ -302,7 +302,7 @@ export function EmitterDashboard() {
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm">{c.quantity} tons</span>
-                        <span className="text-sm font-medium text-emerald-600">₹{c.total_value?.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-emerald-600">Rs. {c.total_value?.toLocaleString()}</span>
                       </div>
                     </div>
                   ))}
