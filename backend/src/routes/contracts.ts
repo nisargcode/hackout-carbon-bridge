@@ -35,6 +35,33 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', authenticateJWT, async (req: Request, res: Response) => {
   try {
     const { supply_id, buyer_id, seller_id, quantity, unit_price, contract_type, start_date, end_date } = req.body;
+
+    // Validate contract constraints
+    if (Number(quantity) <= 0) {
+      res.status(400).json({ error: 'Contract quantity must be positive' });
+      return;
+    }
+    if (Number(unit_price) <= 0) {
+      res.status(400).json({ error: 'Unit price must be positive' });
+      return;
+    }
+    if (start_date && end_date && end_date <= start_date) {
+      res.status(400).json({ error: 'End date must be after start date' });
+      return;
+    }
+    // Verify supply availability
+    if (supply_id) {
+      const { data: supply } = await supabase
+        .from('co2_supplies')
+        .select('available_quantity, status')
+        .eq('supply_id', supply_id)
+        .single();
+      if (supply && Number(quantity) > Number(supply.available_quantity)) {
+        res.status(400).json({ error: `Contract quantity (${quantity}) exceeds available supply (${supply.available_quantity})` });
+        return;
+      }
+    }
+
     const total_value = Number(quantity) * Number(unit_price);
 
     const { data, error } = await supabase
@@ -69,6 +96,21 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
       destination: data.buyer?.location || 'Destination Facility',
       status: 'MATCHED',
     });
+
+    // Deduct contracted quantity from supply
+    if (supply_id) {
+      const { data: currentSupply } = await supabase
+        .from('co2_supplies')
+        .select('available_quantity')
+        .eq('supply_id', supply_id)
+        .single();
+      if (currentSupply) {
+        const newQty = Math.max(0, Number(currentSupply.available_quantity) - Number(quantity));
+        const supplyUpdate: any = { available_quantity: newQty };
+        if (newQty === 0) supplyUpdate.status = 'SOLD_OUT';
+        await supabase.from('co2_supplies').update(supplyUpdate).eq('supply_id', supply_id);
+      }
+    }
 
     res.status(201).json({ message: 'Contract created successfully in database', data });
   } catch (err: any) {

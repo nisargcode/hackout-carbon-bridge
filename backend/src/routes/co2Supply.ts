@@ -86,6 +86,29 @@ router.post('/', authenticateJWT, requireRole(['EMITTER', 'ADMIN']), async (req:
       certification,
     } = req.body;
 
+    // Date & production constraints
+    const today = new Date().toISOString().split('T')[0];
+    if (availability_start && availability_start < today) {
+      res.status(400).json({ error: 'Available From date cannot be in the past' });
+      return;
+    }
+    if (availability_start && availability_end && availability_end <= availability_start) {
+      res.status(400).json({ error: 'Available Until date must be after Available From date' });
+      return;
+    }
+    if (minimum_order && Number(minimum_order) > Number(available_quantity)) {
+      res.status(400).json({ error: 'Minimum order cannot exceed available quantity' });
+      return;
+    }
+    if (Number(available_quantity) <= 0) {
+      res.status(400).json({ error: 'Available quantity must be positive' });
+      return;
+    }
+    if (Number(asking_price) <= 0) {
+      res.status(400).json({ error: 'Asking price must be positive' });
+      return;
+    }
+
     const { data, error } = await supabase
       .from('co2_supplies')
       .insert({

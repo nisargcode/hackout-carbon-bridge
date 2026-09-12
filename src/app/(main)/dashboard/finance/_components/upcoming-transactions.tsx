@@ -62,7 +62,13 @@ export function UpcomingTransactions() {
           {contracts.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">No active contracts right now.</p>
           ) : (
-            contracts.map((c) => (
+            contracts.map((c) => {
+              const buyer: any = c.buyer;
+              const seller: any = c.seller;
+              const buyerName = (Array.isArray(buyer) ? buyer[0]?.name : buyer?.name) || "Unknown Buyer";
+              const sellerName = (Array.isArray(seller) ? seller[0]?.name : seller?.name) || "Unknown Seller";
+
+              return (
               <Link href="/dashboard/contracts" key={c.contract_id}>
                 <Item variant="outline" size="xs" className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <ItemMedia>
@@ -73,8 +79,8 @@ export function UpcomingTransactions() {
                   <ItemContent>
                     <ItemTitle>
                       {c.seller_id === company?.company_id 
-                        ? `Delivery to ${c.buyer?.name}` 
-                        : `Receipt from ${c.seller?.name}`}
+                        ? `Delivery to ${buyerName}` 
+                        : `Receipt from ${sellerName}`}
                     </ItemTitle>
                     <ItemDescription>
                       ₹{Number(c.total_value).toLocaleString()} · {c.quantity} tons
@@ -85,7 +91,7 @@ export function UpcomingTransactions() {
                   </ItemActions>
                 </Item>
               </Link>
-            ))
+            )})
           )}
         </ItemGroup>
       </CardContent>

@@ -23,70 +23,137 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+type TimeRange = "weekly" | "monthly" | "yearly";
+
+function getDaysForRange(range: TimeRange): number {
+  switch (range) {
+    case "weekly": return 7;
+    case "monthly": return 30;
+    case "yearly": return 365;
+  }
+}
+
+function formatLabel(date: string, range: TimeRange): string {
+  const d = new Date(date);
+  switch (range) {
+    case "weekly":
+      return d.toLocaleDateString("en-US", { weekday: "short" });
+    case "monthly":
+      return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+    case "yearly":
+      return d.toLocaleDateString("en-US", { month: "short" });
+  }
+}
+
+function groupDataByRange(
+  contracts: any[],
+  companyId: string,
+  range: TimeRange,
+) {
+  const days = getDaysForRange(range);
+  const grouped: Record<string, { income: number; expense: number }> = {};
+
+  if (range === "yearly") {
+    // Group by month for yearly view
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      grouped[key] = { income: 0, expense: 0 };
+    }
+
+    contracts.forEach((contract) => {
+      const d = new Date(contract.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (!grouped[key]) grouped[key] = { income: 0, expense: 0 };
+
+      if (contract.seller_id === companyId) {
+        grouped[key].income += Number(contract.total_value);
+      } else if (contract.buyer_id === companyId) {
+        grouped[key].expense += Number(contract.total_value);
+      }
+    });
+
+    return Object.keys(grouped)
+      .sort()
+      .map((key) => ({
+        date: key,
+        timestamp: Date.parse(`${key}-01`),
+        income: grouped[key].income,
+        expense: grouped[key].expense,
+        label: new Date(`${key}-01`).toLocaleDateString("en-US", { month: "short" }),
+      }));
+  }
+
+  // Weekly or monthly — group by day
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    grouped[dateStr] = { income: 0, expense: 0 };
+  }
+
+  contracts.forEach((contract) => {
+    const dateStr = new Date(contract.created_at).toISOString().split("T")[0];
+    if (!grouped[dateStr]) return; // Outside range
+    if (contract.seller_id === companyId) {
+      grouped[dateStr].income += Number(contract.total_value);
+    } else if (contract.buyer_id === companyId) {
+      grouped[dateStr].expense += Number(contract.total_value);
+    }
+  });
+
+  return Object.keys(grouped)
+    .sort()
+    .map((date) => ({
+      date,
+      timestamp: Date.parse(date),
+      income: grouped[date].income,
+      expense: grouped[date].expense,
+      label: formatLabel(date, range),
+    }));
+}
+
 export function TransactionsOverviewCard() {
   const { company } = useAuth();
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
 
   useEffect(() => {
     async function fetchData() {
       if (!company) return;
+      setLoading(true);
       const supabase = createClient();
-      
-      // Fetch all contracts where the company is either buyer (expense) or seller (income)
+
+      // Determine date cutoff based on selected range
+      const days = getDaysForRange(timeRange);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoffStr = cutoffDate.toISOString();
+
       const { data } = await supabase
         .from("contracts")
         .select("total_value, seller_id, buyer_id, created_at")
         .or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
+        .gte("created_at", cutoffStr)
         .order("created_at", { ascending: true });
 
       if (data) {
-        // Group by Date (YYYY-MM-DD)
-        const grouped: Record<string, { income: number; expense: number }> = {};
-        
-        // Generate last 7 days of dates to ensure we have a full week even if no data
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split("T")[0];
-          grouped[dateStr] = { income: 0, expense: 0 };
-        }
-
-        data.forEach((contract) => {
-          const dateStr = new Date(contract.created_at).toISOString().split("T")[0];
-          if (!grouped[dateStr]) grouped[dateStr] = { income: 0, expense: 0 };
-          
-          if (contract.seller_id === company.company_id) {
-            grouped[dateStr].income += Number(contract.total_value);
-          } else if (contract.buyer_id === company.company_id) {
-            grouped[dateStr].expense += Number(contract.total_value);
-          }
-        });
-
-        // Convert grouped object to array format for Recharts
-        const formattedData = Object.keys(grouped).sort().map(date => {
-          return {
-            date,
-            timestamp: Date.parse(date),
-            income: grouped[date].income,
-            expense: grouped[date].expense,
-            label: new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
-          };
-        });
-
-        setChartData(formattedData);
+        const formatted = groupDataByRange(data, company.company_id, timeRange);
+        setChartData(formatted);
       }
       setLoading(false);
     }
     fetchData();
-  }, [company]);
+  }, [company, timeRange]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-normal">Spending Overview</CardTitle>
         <CardAction>
-          <Select defaultValue="weekly">
+          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
             <SelectTrigger className="w-28" size="sm">
               <SelectValue />
             </SelectTrigger>

@@ -4,3 +4,4 @@
 - add counter bidding with correct logic in bids
 - add comment while in bidding
 - after successful bidding, after clicking download legal pdf, nothing downloads. so add dummy pdf with the bid data to download there
+- most of things in personal finance page or billing and finance are fake with fake data and all, so make it depended only on backend not on fake generated data, also all the shortcut apps in personal finance page are fake and not working
