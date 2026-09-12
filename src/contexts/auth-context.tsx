@@ -151,12 +151,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const getRedirectUrl = () => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/auth/callback?next=/dashboard`;
+    }
+    return process.env.NEXT_PUBLIC_SITE_URL
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/dashboard`
+      : undefined;
+  };
+
   const signInWithGoogle = async () => {
     try {
+      const redirectUrl = getRedirectUrl();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+          redirectTo: redirectUrl,
         },
       });
       return { error: error?.message ?? null };
@@ -173,7 +183,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     industry: string,
     location: string,
   ) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const redirectUrl = getRedirectUrl();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
+    });
     if (error) return { error: error.message };
 
     if (data.user) {
