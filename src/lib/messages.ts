@@ -203,10 +203,18 @@ export async function fetchUserMessages(userEmail: string, userName: string, com
 
   try {
     let query = supabase.from("messages").select("*").order("created_at", { ascending: false });
-    if (companyId || userEmail) {
-      query = query.or(
-        `recipient_id.eq.${companyId || "00000000-0000-0000-0000-000000000000"},recipient_email.eq.${userEmail},sender_email.eq.${userEmail},recipient_email.eq.marketplace@carbonbridge.io`
-      );
+    const orFilters: string[] = [];
+    if (companyId) {
+      orFilters.push(`recipient_id.eq.${companyId}`);
+      orFilters.push(`sender_id.eq.${companyId}`);
+    }
+    if (userEmail) {
+      orFilters.push(`recipient_email.eq.${userEmail}`);
+      orFilters.push(`sender_email.eq.${userEmail}`);
+    }
+    orFilters.push("recipient_email.eq.marketplace@carbonbridge.io");
+    if (orFilters.length > 0) {
+      query = query.or(orFilters.join(","));
     }
     const { data, error } = await query;
     if (!error && data && data.length > 0) {
@@ -275,6 +283,7 @@ export async function sendUserMessage(payload: SendMessagePayload): Promise<Mail
     }
   }
 
+  // Insert recipient's copy (inbox) into DB
   try {
     await supabase.from("messages").insert({
       message_id: messageId,
@@ -294,7 +303,31 @@ export async function sendUserMessage(payload: SendMessagePayload): Promise<Mail
       created_at: now,
     });
   } catch (err) {
-    console.warn("Supabase message insert error:", err);
+    console.warn("Supabase message insert error (recipient):", err);
+  }
+
+  // Insert sender's copy (sent folder) into DB
+  try {
+    const sentId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `sent-${Date.now()}`;
+    await supabase.from("messages").insert({
+      message_id: sentId,
+      sender_id: payload.senderId || null,
+      sender_name: payload.senderName,
+      sender_email: payload.senderEmail,
+      recipient_id: payload.recipientId || null,
+      recipient_name: payload.recipientName,
+      recipient_email: payload.recipientEmail,
+      subject: payload.subject,
+      body: payload.body,
+      folder: "sent",
+      is_read: true,
+      is_pinned: false,
+      is_priority: Boolean(payload.isPriority),
+      labels: payload.labels || ["trade", "sent"],
+      created_at: now,
+    });
+  } catch (err) {
+    console.warn("Supabase message insert error (sender):", err);
   }
 
   if (payload.recipientId) {

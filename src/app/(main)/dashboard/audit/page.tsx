@@ -29,7 +29,7 @@ export default function AuditPage() {
             id: `AUD-CERT-${c.certificate_id.slice(0, 6)}`,
             action: `Purity Certification Issued: ${c.certificate_type}`,
             target: `Certificate #${c.certificate_id.slice(0, 8)}`,
-            actor: c.issuing_authority || "Accredited Lab",
+            actor: c.verified_by || "Accredited Lab",
             time: new Date(c.created_at).toLocaleDateString(),
             status: "VERIFIED",
           });
