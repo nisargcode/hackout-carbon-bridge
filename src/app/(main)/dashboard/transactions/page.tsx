@@ -94,7 +94,7 @@ export default function TransactionsPage() {
                           Volume: <strong className="text-foreground">{tx.quantity} tons</strong>
                         </span>
                         <span>
-                          Value: <strong className="text-foreground">₹{val.toLocaleString()}</strong>
+                          Value: <strong className="text-foreground">Rs. {val.toLocaleString()}</strong>
                         </span>
                         <span>Date: {new Date(tx.created_at).toLocaleDateString()}</span>
                         <span>Type: {tx.contract_type?.replace("_", " ")}</span>

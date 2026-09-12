@@ -125,7 +125,7 @@ export default function NotificationsPage() {
           recipient_id: notif.sender_id,
           sender_id: company.company_id,
           title: "Bid Approved! Contract Created",
-          message: `${company.name || "Seller"} approved your offer of ₹${unitPrice.toLocaleString()}/t for ${quantity} tons of CO₂. A binding trade contract has been generated!`,
+          message: `${company.name || "Seller"} approved your offer of Rs. ${unitPrice.toLocaleString()}/t for ${quantity} tons of CO₂. A binding trade contract has been generated!`,
           type: "BID_ACCEPTED",
           reference_id: bidId,
           reference_type: "bid",
@@ -176,7 +176,7 @@ export default function NotificationsPage() {
           recipient_id: notif.sender_id,
           sender_id: company.company_id,
           title: "Bid Declined",
-          message: `${company.name || "Seller"} has declined your offer of ₹${Number(notif.metadata?.amount || 0).toLocaleString()}/t for ${notif.metadata?.quantity || 0} tons.`,
+          message: `${company.name || "Seller"} has declined your offer of Rs. ${Number(notif.metadata?.amount || 0).toLocaleString()}/t for ${notif.metadata?.quantity || 0} tons.`,
           type: "BID_REJECTED",
           reference_id: bidId,
           reference_type: "bid",
@@ -329,12 +329,12 @@ export default function NotificationsPage() {
                     )}
                     {amount && (
                       <span className="bg-muted/40 px-2 py-0.5 rounded-md">
-                        Unit Price: <strong className="text-foreground">₹{amount.toLocaleString()}/t</strong>
+                        Unit Price: <strong className="text-foreground">Rs. {amount.toLocaleString()}/t</strong>
                       </span>
                     )}
                     {total && (
                       <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-medium">
-                        Total Value: ₹{total.toLocaleString()}
+                        Total Value: Rs. {total.toLocaleString()}
                       </span>
                     )}
                   </div>

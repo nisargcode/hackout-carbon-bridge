@@ -59,7 +59,7 @@ export function evaluatePricingAction(
       const volumeDiscount = volumeTons > 500 ? 0.9 : volumeTons > 200 ? 0.95 : 1.0;
       return {
         approved: true,
-        recommendation: `Volume-tiered estimated quote generated: ₹${Math.round(listPrice * volumeDiscount)}/ton.`,
+        recommendation: `Volume-tiered estimated quote generated: Rs. ${Math.round(listPrice * volumeDiscount)}/ton.`,
         nextStatus: 'PENDING',
         suggestedCounterPrice: Math.round(listPrice * volumeDiscount),
       };

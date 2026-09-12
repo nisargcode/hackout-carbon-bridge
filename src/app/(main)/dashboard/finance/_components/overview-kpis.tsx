@@ -59,7 +59,7 @@ export function OverviewKpis() {
           </CardHeader>
           <CardContent className="flex items-end justify-between">
             <div className="space-y-1">
-              <div className="text-3xl leading-none tracking-tight">₹{data.revenue.toLocaleString()}</div>
+              <div className="text-3xl leading-none tracking-tight">Rs. {data.revenue.toLocaleString()}</div>
               <p className="text-muted-foreground text-xs">Income from CO₂ sales</p>
             </div>
             <Badge className="bg-emerald-500/10 text-emerald-700">Earnings</Badge>
@@ -72,7 +72,7 @@ export function OverviewKpis() {
           </CardHeader>
           <CardContent className="flex items-end justify-between">
             <div className="flex flex-col gap-1">
-              <div className="text-3xl leading-none tracking-tight">₹{data.spent.toLocaleString()}</div>
+              <div className="text-3xl leading-none tracking-tight">Rs. {data.spent.toLocaleString()}</div>
               <p className="text-muted-foreground text-xs">Expenses from CO₂ purchases</p>
             </div>
             <Badge className="bg-rose-500/10 text-rose-700">Expenses</Badge>
@@ -85,7 +85,7 @@ export function OverviewKpis() {
           </CardHeader>
           <CardContent className="flex items-end justify-between">
             <div className="flex flex-col gap-1">
-              <div className="text-3xl leading-none tracking-tight">₹{netBalance.toLocaleString()}</div>
+              <div className="text-3xl leading-none tracking-tight">Rs. {netBalance.toLocaleString()}</div>
               <p className="text-muted-foreground text-xs">Overall financial position</p>
             </div>
             <Badge className={netBalance >= 0 ? "bg-emerald-500/10 text-emerald-700" : "bg-rose-500/10 text-rose-700"}>

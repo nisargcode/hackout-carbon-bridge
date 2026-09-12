@@ -228,7 +228,7 @@ export function BuyerDashboard() {
                     <div>
                       <p className="font-medium text-sm">{match.companies?.name || "Supplier"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {match.quantity} tons @ ₹{match.amount}/ton
+                        {match.quantity} tons @ Rs. {match.amount}/ton
                       </p>
                     </div>
                     <Button size="sm" asChild variant="outline">
@@ -298,7 +298,7 @@ export function BuyerDashboard() {
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm">{c.quantity} tons</span>
-                        <span className="text-sm font-medium text-emerald-600">₹{c.total_value?.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-emerald-600">Rs. {c.total_value?.toLocaleString()}</span>
                       </div>
                     </div>
                   ))}

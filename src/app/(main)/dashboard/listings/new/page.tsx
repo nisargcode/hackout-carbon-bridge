@@ -330,7 +330,7 @@ export default function NewSupplyPage() {
                 name="asking_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asking Price (₹/ton)</FormLabel>
+                    <FormLabel>Asking Price (Rs. /ton)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="4200" {...field} />
                     </FormControl>

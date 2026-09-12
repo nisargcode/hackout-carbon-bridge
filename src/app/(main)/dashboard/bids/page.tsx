@@ -44,7 +44,7 @@ export default function BidsPage() {
         // 1. Were submitted to this company's supplies (Incoming)
         // 2. Were placed by this company (Outgoing)
         const relevant = (data || []).filter(
-          (b) => b.bidder_id === company.company_id || b.supply?.emitter_id === company.company_id,
+          (b) => b.bidder_id === company.company_id || b.supply?.emitter_id === company.company_id
         );
         setBids(relevant);
       }
@@ -120,7 +120,7 @@ export default function BidsPage() {
           recipient_id: recipientId,
           sender_id: company.company_id,
           title: "Bid Approved! Contract Created",
-          message: `${company.name} accepted the offer of ₹${price.toLocaleString()}/t for ${qty} tons of CO₂. The contract is now active!`,
+          message: `${company.name} accepted the offer of Rs. ${price.toLocaleString()}/t for ${qty} tons of CO₂. The contract is now active!`,
           type: "BID_ACCEPTED",
           reference_id: bid.bid_id,
           reference_type: "bid",
@@ -135,7 +135,7 @@ export default function BidsPage() {
           recipient_id: recipientId,
           sender_id: company.company_id,
           title: "Bid Declined",
-          message: `${company.name} declined the offer of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons.`,
+          message: `${company.name} declined the offer of Rs. ${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons.`,
           type: "BID_REJECTED",
           reference_id: bid.bid_id,
           reference_type: "bid",
@@ -184,7 +184,7 @@ export default function BidsPage() {
         recipient_id: recipientId,
         sender_id: company.company_id,
         title: "Counter Offer Received",
-        message: `${company.name} submitted a counter offer of ₹${Number(counterPrice).toLocaleString()}/t for your bid.`,
+        message: `${company.name} submitted a counter offer of Rs. ${Number(counterPrice).toLocaleString()}/t for your bid.`,
         type: "BID_COUNTERED",
         reference_id: activeBid.bid_id,
         reference_type: "bid",
@@ -195,7 +195,7 @@ export default function BidsPage() {
           b.bid_id === activeBid.bid_id ? { ...b, status: "COUNTER_OFFER", amount: Number(counterPrice), notes: updatedNotes } : b,
         ),
       );
-      toast.success(`Counter offer of ₹${counterPrice}/t submitted!`);
+      toast.success(`Counter offer of Rs. ${counterPrice}/t submitted!`);
       setActiveBid(null);
       setCounterPrice("");
       setCounterNote("");
@@ -217,8 +217,9 @@ export default function BidsPage() {
     );
   }
 
-  const incomingBids = bids.filter((b) => b.supply?.emitter_id === company?.company_id);
-  const outgoingBids = bids.filter((b) => b.bidder_id === company?.company_id);
+  const activeBids = bids.filter((b) => b.status !== "ACCEPTED" && b.status !== "REJECTED");
+  const incomingBids = activeBids.filter((b) => b.supply?.emitter_id === company?.company_id);
+  const outgoingBids = activeBids.filter((b) => b.bidder_id === company?.company_id);
 
   const pendingCount = bids.filter((b) => b.status === "PENDING").length;
   const acceptedCount = bids.filter((b) => b.status === "ACCEPTED").length;
@@ -264,17 +265,17 @@ export default function BidsPage() {
                   Quantity: <strong className="text-foreground">{b.quantity} tons</strong>
                 </span>
                 <span>
-                  Offered Price: <strong className="text-foreground">₹{Number(b.amount).toLocaleString()}/t</strong>
+                  Offered Price: <strong className="text-foreground">Rs. {Number(b.amount).toLocaleString()}/t</strong>
                 </span>
                 {b.supply?.asking_price && (
                   <span>
-                    Asking: <span className="line-through">₹{Number(b.supply.asking_price).toLocaleString()}/t</span>
+                    Asking: <span className="line-through">Rs. {Number(b.supply.asking_price).toLocaleString()}/t</span>
                   </span>
                 )}
                 <span>
                   Total:{" "}
                   <strong className="text-primary font-medium">
-                    ₹{(Number(b.amount) * Number(b.quantity)).toLocaleString()}
+                    Rs. {(Number(b.amount) * Number(b.quantity)).toLocaleString()}
                   </strong>
                 </span>
                 <span>Date: {new Date(b.created_at).toLocaleDateString()}</span>
@@ -326,10 +327,10 @@ export default function BidsPage() {
                     </DialogHeader>
                     <div className="space-y-4 py-3">
                       <p className="text-sm text-muted-foreground">
-                        Original bid was ₹{b.amount}/ton for {b.quantity} tons. Enter your revised price per ton:
+                        Original bid was Rs. {b.amount}/ton for {b.quantity} tons. Enter your revised price per ton:
                       </p>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">₹</span>
+                        <span className="font-bold">Rs. </span>
                         <Input
                           type="number"
                           placeholder="e.g. 4300"
@@ -395,7 +396,7 @@ export default function BidsPage() {
         ))}
       </div>
 
-      {bids.length === 0 ? (
+      {activeBids.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground space-y-3">
             <Gavel className="h-10 w-10 mx-auto stroke-1" />
@@ -416,13 +417,13 @@ export default function BidsPage() {
       ) : (
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="all">All Bids ({bids.length})</TabsTrigger>
+            <TabsTrigger value="all">Active Bids ({activeBids.length})</TabsTrigger>
             <TabsTrigger value="incoming">Incoming ({incomingBids.length})</TabsTrigger>
             <TabsTrigger value="outgoing">Outgoing ({outgoingBids.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            {bids.map(renderBidCard)}
+            {activeBids.map(renderBidCard)}
           </TabsContent>
 
           <TabsContent value="incoming" className="space-y-4">

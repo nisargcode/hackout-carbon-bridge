@@ -120,7 +120,7 @@ export function BalanceDistributionCard() {
                             x={viewBox.cx}
                             y={(viewBox.cy ?? 0) + 14}
                           >
-                            ₹{totalValue >= 1000000 ? (totalValue/1000000).toFixed(1) + 'M' : totalValue >= 1000 ? (totalValue/1000).toFixed(1) + 'k' : totalValue}
+                            Rs. {totalValue >= 1000000 ? (totalValue/1000000).toFixed(1) + 'M' : totalValue >= 1000 ? (totalValue/1000).toFixed(1) + 'k' : totalValue}
                           </tspan>
                         </text>
                       );
@@ -139,7 +139,7 @@ export function BalanceDistributionCard() {
                       <p className="truncate text-muted-foreground text-xs">{item.account}</p>
                     </div>
                     <p className="font-medium tabular-nums">
-                      ₹{item.amount.toLocaleString()}
+                      Rs. {item.amount.toLocaleString()}
                     </p>
                   </div>
                   <div className="font-medium tabular-nums">{item.percentage}%</div>

@@ -75,7 +75,7 @@ export function IncomeBreakdown() {
                   <p className="wrap-break-word text-muted-foreground text-xs leading-none truncate pr-2">
                     {s.name} · {s.percentage}%
                   </p>
-                  <div className="text-lg leading-none tracking-tight">₹{s.amount.toLocaleString()}</div>
+                  <div className="text-lg leading-none tracking-tight">Rs. {s.amount.toLocaleString()}</div>
                 </div>
                 <div 
                   className="-ml-0.5 h-5 rounded-sm" 

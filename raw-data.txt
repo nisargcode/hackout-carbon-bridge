@@ -218,7 +218,7 @@ Example:
 Captured       4,500 tons
 Sold           3,700 tons
 Unused           800 tons
-Revenue      ₹1.57 Cr
+Revenue      Rs. 1.57 Cr
 Buyers              12
 
 18. Buyer dashboard
@@ -257,9 +257,9 @@ Expected payment
 
 They bid on transportation jobs.
 
-Logistics A → ₹38k
-Logistics B → ₹35k
-Logistics C → ₹40k
+Logistics A → Rs. 38k
+Logistics B → Rs. 35k
+Logistics C → Rs. 40k
 
 Platform selects the optimal option.
 

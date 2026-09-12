@@ -133,15 +133,7 @@ export function NavMain({ items }: NavMainProps) {
                       </div>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/dashboard/demands/new" className="flex items-center gap-2.5">
-                      <ShoppingBag className="h-4 w-4 text-blue-600" />
-                      <div>
-                        <p className="font-medium text-xs">Post Demand Request</p>
-                        <p className="text-[10px] text-muted-foreground">Request required CO₂ volume</p>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
+
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/dashboard/marketplace" className="flex items-center gap-2.5">
                       <Sparkles className="h-4 w-4 text-amber-500" />

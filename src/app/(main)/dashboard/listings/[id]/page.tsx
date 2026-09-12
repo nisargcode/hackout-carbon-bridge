@@ -217,7 +217,7 @@ export default function EditListingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="asking_price">Asking Price (₹/ton)</Label>
+                <Label htmlFor="asking_price">Asking Price (Rs. /ton)</Label>
                 <Input
                   id="asking_price"
                   type="number"

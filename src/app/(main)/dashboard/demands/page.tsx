@@ -137,7 +137,7 @@ function CreateDemandDialog({ onCreated }: { onCreated: () => void }) {
                 name="max_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Max Price (₹/ton)</FormLabel>
+                    <FormLabel>Max Price (Rs. /ton)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="5000" {...field} />
                     </FormControl>
@@ -242,7 +242,7 @@ export default function DemandsPage() {
                     <div className="flex gap-4 text-sm text-muted-foreground">
                       <span>{d.required_quantity} tons</span>
                       <span>Min purity: {d.required_purity}%</span>
-                      <span>Max: ₹{d.max_price.toLocaleString()}/t</span>
+                      <span>Max: Rs. {d.max_price.toLocaleString()}/t</span>
                       <span>📍 {d.required_location}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
