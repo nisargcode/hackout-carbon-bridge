@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 export function GitHubRepositoriesMenu() {
   return (
     <Button size="icon" aria-label="Open project on GitHub" asChild>
-      <Link href="https://github.com/nisargcode" target="_blank" rel="noreferrer">
+      <Link href="https://github.com/nisargcode/hackout-carbon-bridge" target="_blank" rel="noreferrer">
         <SimpleIcon icon={siGithub} className="fill-primary-foreground" />
       </Link>
     </Button>

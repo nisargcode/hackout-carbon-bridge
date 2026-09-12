@@ -140,8 +140,17 @@ export default function NotificationsPage() {
         });
       }
 
-      // 4. Mark notification read & refresh
+      // 4. Mark notification read & remove the original request from db
       markNotificationAsRead(notif.notification_id);
+      
+      await supabase
+        .from("notifications")
+        .delete()
+        .eq("reference_id", bidId)
+        .eq("type", "BID_RECEIVED");
+
+      // Optimistic UI update
+      setNotifications((prev) => prev.filter((n) => n.notification_id !== notif.notification_id));
       toast.success("Bid accepted! Contract generated and buyer notified.");
       await loadNotifications();
     } catch (err: any) {
@@ -190,8 +199,17 @@ export default function NotificationsPage() {
         });
       }
 
-      // 3. Mark notification read & refresh
+      // 3. Mark notification read & remove the original request from db
       markNotificationAsRead(notif.notification_id);
+
+      await supabase
+        .from("notifications")
+        .delete()
+        .eq("reference_id", bidId)
+        .eq("type", "BID_RECEIVED");
+
+      // Optimistic UI update
+      setNotifications((prev) => prev.filter((n) => n.notification_id !== notif.notification_id));
       toast.info("Bid declined and buyer notified.");
       await loadNotifications();
     } catch (err: any) {
