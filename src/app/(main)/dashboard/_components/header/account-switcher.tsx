@@ -96,6 +96,10 @@ export function AccountSwitcher() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="cursor-pointer">
+            <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" />
+            Enterprise Profile
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="cursor-pointer">
             <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
             Company Settings
