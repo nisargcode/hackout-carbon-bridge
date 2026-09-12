@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ShieldCheck, ReceiptText, AlertCircle, BarChart2, ArrowRight } from "lucide-react";
+import { ShieldCheck, ReceiptText, AlertCircle, BarChart2, ArrowRight, BarChart3 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,9 +54,9 @@ export function RegulatorDashboard() {
         // 3. Fetch recent contracts
         const { data: contracts } = await supabase
           .from("contracts")
-          .select("*, seller:supplier_id(name), buyer:buyer_id(name)")
+          .select("*, seller:companies!seller_id(name), buyer:companies!buyer_id(name)")
           .order("created_at", { ascending: false })
-          .limit(5);
+          .limit(10);
 
         setStats({
           totalTransactions: txCount || 0,
@@ -65,6 +75,17 @@ export function RegulatorDashboard() {
     loadData();
   }, []);
 
+  const chartData = useMemo(() => {
+    if (recentTransactions.length === 0) {
+      return [{ contract: "Audit #1", volume: 0, value: 0 }];
+    }
+    return recentTransactions.slice(0, 6).map((tx) => ({
+      contract: `${tx.seller?.name?.split(" ")[0] || "Seller"} ? ${tx.buyer?.name?.split(" ")[0] || "Buyer"}`,
+      volume: Number(tx.quantity) || 0,
+      value: Math.round(((Number(tx.quantity) || 0) * (Number(tx.unit_price) || 0)) / 100000), // In Lakhs
+    }));
+  }, [recentTransactions]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -82,7 +103,7 @@ export function RegulatorDashboard() {
     { label: "Total Transactions", value: stats.totalTransactions.toString(), icon: ReceiptText },
     { label: "Verified Certificates", value: stats.verifiedCerts.toString(), icon: ShieldCheck },
     { label: "Pending Review", value: stats.pendingReview.toString(), icon: AlertCircle },
-    { label: "CO₂ Mass Tracked", value: `${stats.co2Tracked.toLocaleString()} tons`, icon: BarChart2 },
+    { label: "CO? Mass Tracked", value: `${stats.co2Tracked.toLocaleString()} tons`, icon: BarChart2 },
   ];
 
   return (
@@ -123,6 +144,50 @@ export function RegulatorDashboard() {
         })}
       </div>
 
+      {/* Interactive Regulatory Oversight Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600" />
+                Statutory Transaction Volume (MT) & Value (? Lakhs)
+              </CardTitle>
+              <CardDescription>
+                Audited bilateral contracts logged under statutory National Carbon Authority oversight
+              </CardDescription>
+            </div>
+            <Badge variant="outline">Verified Ledger</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="contract" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" orientation="left" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(217, 91%, 60%)" tick={{ fontSize: 12 }} />
+                <Tooltip
+                  formatter={(val: any, name: any) => [
+                    name === "Volume (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val).toLocaleString()} Lakhs`,
+                    name,
+                  ]}
+                  contentStyle={{
+                    backgroundColor: "var(--background)",
+                    borderColor: "var(--border)",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend verticalAlign="top" height={36} />
+                <Bar yAxisId="left" dataKey="volume" name="Volume (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="right" dataKey="value" name="Value (? Lakhs)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="space-y-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -155,10 +220,10 @@ export function RegulatorDashboard() {
                   >
                     <div>
                       <p className="font-medium text-sm">
-                        {tx.seller?.name || "Seller"} → {tx.buyer?.name || "Buyer"}
+                        {tx.seller?.name || "Seller"} ? {tx.buyer?.name || "Buyer"}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {tx.total_quantity} tons @ ₹{Number(tx.unit_price || 0).toLocaleString()}/ton · Value: ₹{(Number(tx.total_quantity || 0) * Number(tx.unit_price || 0)).toLocaleString()}
+                        {tx.quantity} tons @ ?{Number(tx.unit_price || 0).toLocaleString()}/ton ? Value: ?{(Number(tx.quantity || 0) * Number(tx.unit_price || 0)).toLocaleString()}
                       </p>
                     </div>
                     <Badge variant={tx.status === "ACTIVE" ? "default" : "outline"}>

@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ShoppingBag, TrendingDown, Users, Truck, PlusCircle, ArrowRight, Package } from "lucide-react";
+import { ShoppingBag, TrendingDown, Users, Truck, PlusCircle, ArrowRight, Package, BarChart3 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -24,6 +34,7 @@ export function BuyerDashboard() {
   });
   const [demands, setDemands] = useState<any[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -49,7 +60,8 @@ export function BuyerDashboard() {
           .select("*, companies:seller_id(name)")
           .eq("buyer_id", company.company_id);
 
-        const contracts = contractData || [];
+        const currentContracts = contractData || [];
+        setContracts(currentContracts);
 
         // 3. Fetch shipments
         const { data: shipmentData } = await supabase
@@ -65,23 +77,23 @@ export function BuyerDashboard() {
           (sum, d) => sum + (parseFloat(d.required_quantity) || 0),
           0
         );
-        const totalUtil = contracts.reduce(
+        const totalUtil = currentContracts.reduce(
           (sum, c) => sum + (parseFloat(c.quantity) || 0),
           0
         );
-        const uniqueSuppliers = new Set(contracts.map((c) => c.seller_id)).size;
-        const activeCtr = contracts.filter((c) => c.status === "ACTIVE").length;
+        const uniqueSuppliers = new Set(currentContracts.map((c) => c.seller_id)).size;
+        const activeCtr = currentContracts.filter((c) => c.status === "ACTIVE").length;
         const upcoming = currentShipments.filter(
           (s) => s.status !== "DELIVERED" && s.status !== "VERIFIED"
         ).length;
 
         const avgPrice =
-          contracts.length > 0
+          currentContracts.length > 0
             ? Math.round(
-                contracts.reduce(
+                currentContracts.reduce(
                   (acc, c) => acc + (parseFloat(c.unit_price) || 0),
                   0
-                ) / contracts.length
+                ) / currentContracts.length
               )
             : currentDemands.length > 0
             ? Math.round(
@@ -110,6 +122,17 @@ export function BuyerDashboard() {
     loadData();
   }, [company?.company_id]);
 
+  const chartData = useMemo(() => {
+    if (demands.length === 0) {
+      return [{ name: "Demand #1", required: 0, maxPrice: 0 }];
+    }
+    return demands.map((d, idx) => ({
+      name: `${d.application || "General"} (${d.required_purity || 95}%)`,
+      required: Number(d.required_quantity) || 0,
+      maxPrice: Number(d.max_price) || 0,
+    }));
+  }, [demands]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -125,51 +148,51 @@ export function BuyerDashboard() {
 
   const metrics = [
     {
-      label: "CO₂ Required",
+      label: "Total CO? Required",
       value: `${stats.totalRequired.toLocaleString()} tons`,
       icon: ShoppingBag,
-      change: `${demands.length} active demand${demands.length === 1 ? "" : "s"}`,
+      change: `${demands.length} active demand request${demands.length === 1 ? "" : "s"}`,
     },
     {
-      label: "Suppliers Contracted",
+      label: "Contracted Offtake",
+      value: `${stats.totalUtilized.toLocaleString()} tons`,
+      icon: TrendingDown,
+      change: `${stats.activeContracts} active contract${stats.activeContracts === 1 ? "" : "s"}`,
+    },
+    {
+      label: "Average Price",
+      value: stats.avgPrice > 0 ? `?${stats.avgPrice.toLocaleString()}/t` : "?0/t",
+      icon: TrendingDown,
+      change: "Procurement average",
+    },
+    {
+      label: "Active Suppliers",
       value: stats.currentSuppliers.toString(),
       icon: Users,
-      change: "Direct offtake sources",
-    },
-    {
-      label: "Avg Procurement Price",
-      value:
-        stats.avgPrice > 0 ? `₹${stats.avgPrice.toLocaleString()}/ton` : "₹0/ton",
-      icon: TrendingDown,
-      change: "Weighted index",
-    },
-    {
-      label: "Total Utilized",
-      value: `${stats.totalUtilized.toLocaleString()} tons`,
-      icon: Package,
-      change: "Executed deliveries",
+      change: "Contracted partners",
     },
   ];
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-bold text-2xl text-foreground">
-            Welcome back, {company?.name ?? "CO₂ Buyer"}
+            Welcome back, {company?.name ?? "CO? Buyer"}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Track your industrial CO₂ procurement, supply contracts, and incoming shipments.
+            Track your industrial CO? requisitions, supplier matches, and shipment deliveries.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button variant="outline" asChild>
-            <Link href="/dashboard/marketplace">Explore Marketplace</Link>
+            <Link href="/dashboard/marketplace">Browse Marketplace</Link>
           </Button>
           <Button asChild>
-            <Link href="/dashboard/create-demand">
+            <Link href="/dashboard/demands">
               <PlusCircle className="h-4 w-4 mr-1.5" />
-              Post CO₂ Demand
+              Post New Demand
             </Link>
           </Button>
         </div>
@@ -260,6 +283,61 @@ export function BuyerDashboard() {
         </Card>
       </div>
 
+      {/* Interactive Demand Requirements & Price Ceiling Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                Demand Specifications: Volume & Price Ceilings
+              </CardTitle>
+              <CardDescription>
+                Visual comparison of your posted industrial requisitions and budget allocations
+              </CardDescription>
+            </div>
+            <Badge variant="outline">Live Database</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-72 w-full">
+            {demands.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm space-y-2">
+                <ShoppingBag className="h-8 w-8 stroke-1" />
+                <p>No active demand requests to graph yet.</p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/demands">Post First Demand</Link>
+                </Button>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" orientation="left" stroke="hsl(217, 91%, 60%)" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(val: any, name: any) => [
+                      name === "Required Volume (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val).toLocaleString()}/MT`,
+                      name,
+                    ]}
+                    contentStyle={{
+                      backgroundColor: "var(--background)",
+                      borderColor: "var(--border)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar yAxisId="left" dataKey="required" name="Required Volume (MT)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="maxPrice" name="Max Price Budget (?/MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Demand Requests */}
         <Card>
@@ -269,7 +347,7 @@ export function BuyerDashboard() {
               <CardDescription>Specifications posted to the marketplace</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/create-demand">
+              <Link href="/dashboard/demands">
                 Post Demand
                 <PlusCircle className="h-3.5 w-3.5 ml-1" />
               </Link>
@@ -281,7 +359,7 @@ export function BuyerDashboard() {
                 <ShoppingBag className="h-8 w-8 mx-auto stroke-1" />
                 <p className="text-sm">No active demand requests created yet.</p>
                 <Button size="sm" asChild>
-                  <Link href="/dashboard/create-demand">Post Your First Demand</Link>
+                  <Link href="/dashboard/demands">Post Your First Demand</Link>
                 </Button>
               </div>
             ) : (
@@ -293,14 +371,14 @@ export function BuyerDashboard() {
                   >
                     <div>
                       <p className="font-medium text-sm">
-                        {d.required_quantity} tons · Min {d.required_purity}% Purity
+                        {d.required_quantity} tons ? Min {d.required_purity}% Purity
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {d.application || "Industrial Use"} · {d.required_location}
+                        {d.application || "Industrial Use"} ? {d.required_location}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-sm">Max ₹{d.max_price}/t</div>
+                      <div className="font-semibold text-sm">Max ?{d.max_price}/t</div>
                       <Badge variant="outline" className="text-[10px]">
                         {d.status || "OPEN"}
                       </Badge>
@@ -344,10 +422,10 @@ export function BuyerDashboard() {
                   >
                     <div>
                       <p className="font-medium text-sm">
-                        {s.companies?.name || "CO₂ Supplier"}
+                        {s.companies?.name || "CO? Supplier"}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {s.quantity} tons · {s.pickup_location} → {s.destination}
+                        {s.quantity} tons ? {s.pickup_location} ? {s.destination}
                       </p>
                     </div>
                     <Badge variant="outline">{s.status?.replace("_", " ")}</Badge>

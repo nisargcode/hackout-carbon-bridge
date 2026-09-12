@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { Forklift, MapPin, DollarSign, Package, CheckCircle, ArrowRight } from "lucide-react";
+import { Forklift, MapPin, DollarSign, Package, CheckCircle, ArrowRight, Truck, BarChart3 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,8 +44,8 @@ export function LogisticsDashboard() {
         // 1. Available jobs (unassigned shipments)
         const { data: openJobs } = await supabase
           .from("shipments")
-          .select("*, supplier:supplier_id(name), buyer:buyer_id(name)")
-          .is("logistics_provider", null)
+          .select("*, supplier:companies!supplier_id(name), buyer:companies!buyer_id(name)")
+          .is("logistics_provider_id", null)
           .order("created_at", { ascending: false });
 
         const jobs = openJobs || [];
@@ -44,8 +54,8 @@ export function LogisticsDashboard() {
         // 2. Active / assigned shipments for this carrier
         const { data: myShipments } = await supabase
           .from("shipments")
-          .select("*, supplier:supplier_id(name), buyer:buyer_id(name)")
-          .eq("logistics_provider", company.company_id)
+          .select("*, supplier:companies!supplier_id(name), buyer:companies!buyer_id(name)")
+          .eq("logistics_provider_id", company.company_id)
           .order("created_at", { ascending: false });
 
         const assigned = myShipments || [];
@@ -77,6 +87,18 @@ export function LogisticsDashboard() {
     loadData();
   }, [company?.company_id]);
 
+  const chartData = useMemo(() => {
+    const list = activeShipments.length > 0 ? activeShipments : availableJobs;
+    if (list.length === 0) {
+      return [{ route: "Corridor #1", quantity: 0, cost: 0 }];
+    }
+    return list.slice(0, 5).map((s) => ({
+      route: `${s.pickup_location?.split(",")[0] || "Origin"} ? ${s.destination?.split(",")[0] || "Dest"}`,
+      quantity: Number(s.quantity) || 0,
+      cost: Math.round((Number(s.transportation_cost) || 0) / 1000), // In thousands
+    }));
+  }, [activeShipments, availableJobs]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -97,11 +119,11 @@ export function LogisticsDashboard() {
       label: "Gross Freight Revenue",
       value:
         stats.revenue > 100000
-          ? `₹${(stats.revenue / 100000).toFixed(2)}L`
-          : `₹${stats.revenue.toLocaleString()}`,
+          ? `?${(stats.revenue / 100000).toFixed(2)}L`
+          : `?${stats.revenue.toLocaleString()}`,
       icon: DollarSign,
     },
-    { label: "Available Haul Jobs", value: stats.availableJobsCount.toString(), icon: Package },
+    { label: "Open Transport Jobs", value: stats.availableJobsCount.toString(), icon: Forklift },
   ];
 
   return (
@@ -112,19 +134,18 @@ export function LogisticsDashboard() {
             Welcome back, {company?.name ?? "Logistics Provider"}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Browse available CO₂ hauling jobs, dispatch cryogenic tankers, and manage routes.
+            Dispatch cryogenic fleet assets, bid on industrial transport tenders, and monitor hazmat compliance.
           </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/jobs">
-            View All Job Opportunities
-            <ArrowRight className="h-4 w-4 ml-1.5" />
+            <Forklift className="h-4 w-4 mr-1.5" />
+            Find CO? Transport Jobs
           </Link>
         </Button>
       </div>
 
-      {/* Overview metrics */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {metrics.map((m) => {
           const Icon = m.icon;
           return (
@@ -143,17 +164,61 @@ export function LogisticsDashboard() {
         })}
       </div>
 
+      {/* Interactive Freight Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+                Freight Volume (MT) & Tariff (? Thousands) by Corridor
+              </CardTitle>
+              <CardDescription>
+                Live payload tonnage and billing breakdown from active shipment manifests
+              </CardDescription>
+            </div>
+            <Badge variant="outline">Telemetry Active</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="route" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" orientation="left" stroke="hsl(217, 91%, 60%)" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
+                <Tooltip
+                  formatter={(val: any, name: any) => [
+                    name === "Payload (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val * 1000).toLocaleString()}`,
+                    name,
+                  ]}
+                  contentStyle={{
+                    backgroundColor: "var(--background)",
+                    borderColor: "var(--border)",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend verticalAlign="top" height={36} />
+                <Bar yAxisId="left" dataKey="quantity" name="Payload (MT)" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="right" dataKey="cost" name="Tariff (? Thousands)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Job board */}
+        {/* Open Bidding Opportunities */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
-              <CardTitle>Open Transportation Jobs</CardTitle>
-              <CardDescription>Available industrial CO₂ loads needing carriers</CardDescription>
+              <CardTitle>Open Transport Jobs</CardTitle>
+              <CardDescription>Industrial shipments requiring logistics assignment</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard/jobs">
-                Browse All
+                Job Board
                 <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>
             </Button>
@@ -162,39 +227,26 @@ export function LogisticsDashboard() {
             {availableJobs.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground space-y-2">
                 <Package className="h-8 w-8 mx-auto stroke-1" />
-                <p className="text-sm">No open transportation jobs at the moment.</p>
-                <p className="text-xs">
-                  When new trades are executed, shipments requiring transport will appear here.
-                </p>
+                <p className="text-sm">No unassigned shipments currently waiting.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {availableJobs.slice(0, 4).map((job) => (
+                {availableJobs.slice(0, 4).map((j) => (
                   <div
-                    key={job.shipment_id}
-                    className="rounded-lg border border-border p-3.5 space-y-2"
+                    key={j.shipment_id}
+                    className="flex items-center justify-between rounded-lg border border-border p-3"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium text-sm">
-                          {job.pickup_location} → {job.destination}
-                        </p>
-                        <p className="text-muted-foreground text-xs mt-0.5">
-                          {job.quantity} tons · Estimated distance: {job.estimated_distance || 150} km
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="text-green-600 border-green-600 font-semibold">
-                        ₹{job.transportation_cost ? Number(job.transportation_cost).toLocaleString() : "Quote"}
-                      </Badge>
+                    <div>
+                      <p className="font-medium text-sm">
+                        {j.pickup_location} ? {j.destination}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {j.quantity} tons ? Distance: {j.estimated_distance_km || 150} km
+                      </p>
                     </div>
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-xs text-muted-foreground">
-                        ETA Target: {job.estimated_delivery ? new Date(job.estimated_delivery).toLocaleDateString() : "Flexible"}
-                      </span>
-                      <Button size="sm" asChild>
-                        <Link href="/dashboard/jobs">Place Carrier Bid</Link>
-                      </Button>
-                    </div>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href="/dashboard/jobs">Place Bid</Link>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -202,15 +254,12 @@ export function LogisticsDashboard() {
           </CardContent>
         </Card>
 
-        {/* Active shipments */}
+        {/* Active Fleet Dispatches */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Forklift className="h-4 w-4" />
-                Your Assigned Shipments
-              </CardTitle>
-              <CardDescription>Active transport routes in your fleet</CardDescription>
+              <CardTitle>Assigned Missions</CardTitle>
+              <CardDescription>Cryogenic assets currently on active routes</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard/shipments">
@@ -222,25 +271,25 @@ export function LogisticsDashboard() {
           <CardContent>
             {activeShipments.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground space-y-2">
-                <Forklift className="h-8 w-8 mx-auto stroke-1" />
-                <p className="text-sm">No active shipments currently assigned.</p>
-                <p className="text-xs">
-                  Bid on open jobs to win transportation routes.
-                </p>
+                <Truck className="h-8 w-8 mx-auto stroke-1" />
+                <p className="text-sm">No active dispatches currently assigned to your company.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {activeShipments.slice(0, 4).map((s) => (
-                  <div key={s.shipment_id} className="rounded-lg border border-border p-3.5 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div
+                    key={s.shipment_id}
+                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                  >
+                    <div>
                       <p className="font-medium text-sm">
-                        {s.pickup_location} → {s.destination}
+                        {s.pickup_location} ? {s.destination}
                       </p>
-                      <Badge>{s.status?.replace("_", " ")}</Badge>
+                      <p className="text-muted-foreground text-xs">
+                        {s.quantity} tons ? Cost: ?{Number(s.transportation_cost || 0).toLocaleString()}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Quantity: {s.quantity} tons · Revenue: ₹{Number(s.transportation_cost || 0).toLocaleString()}
-                    </p>
+                    <Badge variant="outline">{s.status?.replace("_", " ")}</Badge>
                   </div>
                 ))}
               </div>

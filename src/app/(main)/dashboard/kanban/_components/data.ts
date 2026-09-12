@@ -23,8 +23,8 @@ export const tagTones: Record<TaskTeam, string> = {
 };
 
 const taskOwners = {
-  arham: {
-    name: "Arham Khan",
+  lead: {
+    name: "Carbon Operations Lead",
     tone: "[&_[data-slot=avatar-fallback]]:bg-zinc-100 [&_[data-slot=avatar-fallback]]:text-zinc-700 after:border-zinc-200 dark:[&_[data-slot=avatar-fallback]]:bg-zinc-500/15 dark:[&_[data-slot=avatar-fallback]]:text-zinc-300 dark:after:border-zinc-500/20",
   },
   junaid: {
@@ -62,7 +62,7 @@ export const initialBoard: BoardState = {
       priority: "High",
       dueDate: "Jun 14",
       progress: 10,
-      owner: taskOwners.arham,
+      owner: taskOwners.lead,
       team: "Product",
       insights: [
         { label: "Comments", count: 7 },
@@ -118,7 +118,7 @@ export const initialBoard: BoardState = {
       priority: "Low",
       dueDate: "Jun 21",
       progress: 0,
-      owner: taskOwners.arham,
+      owner: taskOwners.lead,
       team: "Platform",
       insights: [{ label: "Comments", count: 2 }],
     },
@@ -131,7 +131,7 @@ export const initialBoard: BoardState = {
       priority: "High",
       dueDate: "Jun 20",
       progress: 25,
-      owner: taskOwners.arham,
+      owner: taskOwners.lead,
       team: "Platform",
       insights: [
         { label: "Attachments", count: 4 },
@@ -191,7 +191,7 @@ export const initialBoard: BoardState = {
       priority: "High",
       dueDate: "Jun 26",
       progress: 65,
-      owner: taskOwners.arham,
+      owner: taskOwners.lead,
       team: "Data",
       insights: [
         { label: "Attachments", count: 5 },
@@ -268,7 +268,7 @@ export const initialBoard: BoardState = {
       priority: "High",
       dueDate: "Jun 8",
       progress: 100,
-      owner: taskOwners.arham,
+      owner: taskOwners.lead,
       team: "Backend",
       insights: [
         { label: "Comments", count: 6 },

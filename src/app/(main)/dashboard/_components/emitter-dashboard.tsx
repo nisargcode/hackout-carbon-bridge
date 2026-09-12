@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { Package, DollarSign, Users, TrendingUp, Clock, PlusCircle, ArrowRight } from "lucide-react";
+import { Package, DollarSign, Users, TrendingUp, Clock, PlusCircle, ArrowRight, BarChart3 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +35,7 @@ export function EmitterDashboard() {
   });
   const [recentBids, setRecentBids] = useState<any[]>([]);
   const [supplies, setSupplies] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -50,7 +61,8 @@ export function EmitterDashboard() {
           .select("*")
           .eq("seller_id", company.company_id);
 
-        const contracts = contractData || [];
+        const currentContracts = contractData || [];
+        setContracts(currentContracts);
 
         // 3. Fetch bids on this emitter's supplies
         const supplyIds = currentSupplies.map((s) => s.supply_id);
@@ -71,19 +83,19 @@ export function EmitterDashboard() {
           (sum, s) => sum + (parseFloat(s.available_quantity) || 0),
           0
         );
-        const totalSold = contracts.reduce(
+        const totalSold = currentContracts.reduce(
           (sum, c) => sum + (parseFloat(c.quantity) || 0),
           0
         );
-        const totalRev = contracts.reduce(
+        const totalRev = currentContracts.reduce(
           (sum, c) =>
             sum +
             (parseFloat(c.quantity) || 0) * (parseFloat(c.unit_price) || 0),
           0
         );
-        const uniqueBuyers = new Set(contracts.map((c) => c.buyer_id)).size;
+        const uniqueBuyers = new Set(currentContracts.map((c) => c.buyer_id)).size;
         const avgPrice =
-          contracts.length > 0
+          currentContracts.length > 0
             ? Math.round(totalRev / (totalSold || 1))
             : currentSupplies.length > 0
             ? Math.round(
@@ -116,6 +128,21 @@ export function EmitterDashboard() {
     loadData();
   }, [company?.company_id]);
 
+  // Interactive chart data mapping live supplies and contracts
+  const chartData = useMemo(() => {
+    if (supplies.length === 0) {
+      return [
+        { name: "Batch #1", available: 0, price: 0 },
+      ];
+    }
+
+    return supplies.map((s, idx) => ({
+      name: `${s.physical_state || "Gas"} (${s.purity_percentage || 98}%)`,
+      available: Number(s.available_quantity) || 0,
+      price: Number(s.asking_price) || 0,
+    }));
+  }, [supplies]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -131,13 +158,13 @@ export function EmitterDashboard() {
 
   const metricsCards = [
     {
-      label: "CO₂ Captured Available",
+      label: "CO? Captured Available",
       value: `${stats.totalCaptured.toLocaleString()} tons`,
       icon: Package,
       change: `${supplies.length} listing${supplies.length === 1 ? "" : "s"}`,
     },
     {
-      label: "CO₂ Sold",
+      label: "CO? Sold",
       value: `${stats.totalSold.toLocaleString()} tons`,
       icon: TrendingUp,
       change: `${stats.utilizationRate}% utilized`,
@@ -146,8 +173,8 @@ export function EmitterDashboard() {
       label: "Gross Revenue",
       value:
         stats.revenue > 100000
-          ? `₹${(stats.revenue / 100000).toFixed(2)}L`
-          : `₹${stats.revenue.toLocaleString()}`,
+          ? `?${(stats.revenue / 100000).toFixed(2)}L`
+          : `?${stats.revenue.toLocaleString()}`,
       icon: DollarSign,
       change: "Settled contracts",
     },
@@ -172,9 +199,9 @@ export function EmitterDashboard() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/create-supply">
+          <Link href="/dashboard/listings/new">
             <PlusCircle className="h-4 w-4 mr-1.5" />
-            List New CO₂ Supply
+            List New CO? Supply
           </Link>
         </Button>
       </div>
@@ -228,8 +255,8 @@ export function EmitterDashboard() {
           <CardContent>
             <div className="font-bold text-2xl">
               {stats.avgSellingPrice > 0
-                ? `₹${stats.avgSellingPrice.toLocaleString()}/ton`
-                : "₹0/ton"}
+                ? `?${stats.avgSellingPrice.toLocaleString()}/ton`
+                : "?0/ton"}
             </div>
             <p className="text-muted-foreground text-xs mt-1">
               Calculated from current listings & contracts
@@ -247,11 +274,66 @@ export function EmitterDashboard() {
           <CardContent>
             <div className="font-bold text-2xl">{recentBids.length}</div>
             <p className="text-muted-foreground text-xs mt-1">
-              {recentBids.filter((b) => b.bid_status === "PENDING").length} awaiting review
+              {recentBids.filter((b) => b.status === "PENDING").length} awaiting review
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Interactive Supply Inventory & Pricing Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600" />
+                Live CO? Supply Batches: Volume vs Asking Price
+              </CardTitle>
+              <CardDescription>
+                Interactive visualization of your listed batches from live database records
+              </CardDescription>
+            </div>
+            <Badge variant="outline">Live Database</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-72 w-full">
+            {supplies.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm space-y-2">
+                <Package className="h-8 w-8 stroke-1" />
+                <p>No active CO? supply listings to graph yet.</p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/listings/new">Add First Listing</Link>
+                </Button>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" orientation="left" stroke="hsl(152, 60%, 42%)" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" stroke="hsl(38, 92%, 50%)" tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(val: any, name: any) => [
+                      name === "Available Volume (MT)" ? `${Number(val).toLocaleString()} MT` : `?${Number(val).toLocaleString()}/MT`,
+                      name,
+                    ]}
+                    contentStyle={{
+                      backgroundColor: "var(--background)",
+                      borderColor: "var(--border)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar yAxisId="left" dataKey="available" name="Available Volume (MT)" fill="hsl(152, 60%, 42%)" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="price" name="Asking Price (?/MT)" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Supplies and Bids */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -259,7 +341,7 @@ export function EmitterDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
-              <CardTitle>Your Active CO₂ Supplies</CardTitle>
+              <CardTitle>Your Active CO? Supplies</CardTitle>
               <CardDescription>Live listings visible on the marketplace</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
@@ -273,9 +355,9 @@ export function EmitterDashboard() {
             {supplies.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground space-y-3">
                 <Package className="h-8 w-8 mx-auto stroke-1" />
-                <p className="text-sm">No active CO₂ supply listings yet.</p>
+                <p className="text-sm">No active CO? supply listings yet.</p>
                 <Button size="sm" asChild>
-                  <Link href="/dashboard/create-supply">Create First Listing</Link>
+                  <Link href="/dashboard/listings/new">Create First Listing</Link>
                 </Button>
               </div>
             ) : (
@@ -290,11 +372,11 @@ export function EmitterDashboard() {
                         {s.available_quantity} tons ({s.physical_state || "Gas"})
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        Purity: {s.purity_percentage}% · {s.location}
+                        Purity: {s.purity_percentage}% ? {s.location}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-sm">₹{s.asking_price}/t</div>
+                      <div className="font-semibold text-sm">?{s.asking_price}/t</div>
                       <Badge variant="outline" className="text-[10px]">
                         {s.status || "AVAILABLE"}
                       </Badge>
@@ -341,7 +423,7 @@ export function EmitterDashboard() {
                         {bid.companies?.name || "Industrial Buyer"}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {bid.quantity} tons · ₹{Number(bid.amount).toLocaleString()}/ton
+                        {bid.quantity} tons ? ?{Number(bid.amount).toLocaleString()}/ton
                       </p>
                     </div>
                     <Badge

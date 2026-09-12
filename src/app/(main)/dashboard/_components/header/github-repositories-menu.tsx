@@ -18,19 +18,19 @@ import {
 const repositories = [
   {
     label: "Radix UI",
-    href: "https://github.com/arhamkhnz/next-shadcn-admin-dashboard",
+    href: "https://github.com/nisargcode/hackout-carbon-bridge",
   },
   {
     label: "Base UI",
-    href: "https://github.com/arhamkhnz/next-shadcn-admin-dashboard-baseui",
+    href: "https://github.com/nisargcode/hackout-carbon-bridge",
   },
   {
     label: "React Aria",
-    href: "https://github.com/arhamkhnz/next-shadcn-admin-dashboard-aria",
+    href: "https://github.com/nisargcode/hackout-carbon-bridge",
   },
   {
     label: "TanStack Start",
-    href: "https://github.com/arhamkhnz/tanstack-shadcn-admin-dashboard",
+    href: "https://github.com/nisargcode/hackout-carbon-bridge",
   },
 ] as const;
 

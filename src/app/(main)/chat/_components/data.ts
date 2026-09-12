@@ -1257,6 +1257,6 @@ export const conversations: Conversation[] = [
 ];
 
 export const currentUser = {
-  name: "Arham Khan",
-  email: "arham.khan@weblabs.studio",
+  name: "Carbon Bridge Support",
+  email: "support@carbonbridge.io",
 };
