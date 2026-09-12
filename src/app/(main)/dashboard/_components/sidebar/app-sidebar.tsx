@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     };
 
     checkNotifs();
-    const interval = setInterval(checkNotifs, 8000);
+    const interval = setInterval(checkNotifs, 30000);
 
     const onCustomNotif = () => checkNotifs();
     window.addEventListener("carbon_bridge_notification", onCustomNotif);
@@ -123,7 +123,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link prefetch={false} href="/dashboard">
+              <Link href="/dashboard">
                 <Leaf className="text-green-600" />
                 <span className="font-semibold text-base">{APP_CONFIG.name}</span>
               </Link>

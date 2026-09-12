@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { cn } from "cn";
 import { Check, EllipsisVertical, LogOut, PenLine, Settings2, UserPlus, UsersRound } from "lucide-react";
 
@@ -301,16 +302,16 @@ function AccountMenuContent({
       )}
       <DropdownMenuGroup>
         <DropdownMenuItem asChild>
-          <a href="/dashboard/profile" className="flex items-center gap-2 cursor-pointer">
+          <Link href="/dashboard/profile" className="flex items-center gap-2 cursor-pointer">
             <Settings2 className="size-4" />
             <span>Profile Settings</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="/dashboard/marketplace" className="flex items-center gap-2 cursor-pointer">
+          <Link href="/dashboard/marketplace" className="flex items-center gap-2 cursor-pointer">
             <UsersRound className="size-4" />
             <span>Trading Marketplace</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
