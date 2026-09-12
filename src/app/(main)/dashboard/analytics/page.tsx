@@ -344,11 +344,11 @@ export default function CarbonAnalyticsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Weighted Avg CO? Price</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Weighted Avg CO Price</CardTitle>
             <IndianRupee className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl text-foreground">?{kpis.avgAskingPrice.toLocaleString()}/MT</div>
+            <div className="font-bold text-2xl text-foreground">{kpis.avgAskingPrice.toLocaleString()}/MT</div>
             <p className="text-muted-foreground text-xs mt-1">
               Realized Contract: ?
               {kpis.avgContractPrice ? kpis.avgContractPrice.toLocaleString() : kpis.avgAskingPrice.toLocaleString()}/MT
@@ -422,7 +422,7 @@ export default function CarbonAnalyticsPage() {
                       <Bar
                         yAxisId="right"
                         dataKey="value"
-                        name="Value (? Lakhs)"
+                        name="Value (Lakhs)"
                         fill="hsl(217, 91%, 60%)"
                         radius={[4, 4, 0, 0]}
                       />
