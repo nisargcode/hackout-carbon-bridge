@@ -30,7 +30,7 @@ export default function VerificationPage() {
       const supabase = createClient();
 
       // 1. Fetch certificates for this company or all verified certs
-      let query = supabase.from("certificates").select("*").order("issue_date", { ascending: false });
+      let query = supabase.from("certificates").select("*").order("issued_at", { ascending: false });
       if (company?.company_id) {
         query = query.eq("company_id", company.company_id);
       }
@@ -71,12 +71,13 @@ export default function VerificationPage() {
       const { error } = await supabase.from("certificates").insert({
         company_id: company?.company_id,
         certificate_type: certType,
-        issuing_authority: issuer,
-        issue_date: new Date().toISOString().split("T")[0],
-        expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        verification_hash: mockHash,
-        status: "VERIFIED",
+        verified_by: issuer,
+        issued_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        certificate_number: mockHash.slice(0, 20),
+        verification_status: true,
         document_url: "https://carbonbridge.registry/certs/" + mockHash.slice(0, 12),
+        metadata: details ? { purity_notes: details } : {},
       });
 
       if (error) {
@@ -109,10 +110,10 @@ export default function VerificationPage() {
   }
 
   const overallScore = reputation?.overall_score ?? company?.sustainability_score ?? 95;
-  const reliability = reputation?.reliability_score ?? 95;
-  const quality = reputation?.quality_score ?? 98;
-  const delivery = reputation?.delivery_score ?? 94;
-  const docs = reputation?.documentation_score ?? 100;
+  const reliability = reputation?.reliability ?? 95;
+  const quality = reputation?.quality ?? 98;
+  const delivery = reputation?.delivery ?? 94;
+  const docs = reputation?.documentation ?? 100;
 
   return (
     <div className="space-y-6">
@@ -217,22 +218,22 @@ export default function VerificationPage() {
             <Card key={cert.certificate_id} className="hover:border-primary/50 transition-colors">
               <CardContent className="py-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1.5">
+                    <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-base">{cert.certificate_type}</span>
                       <Badge variant="outline" className="text-xs">{cert.certificate_id.slice(0, 8)}</Badge>
                       <Badge className="bg-green-600 text-white flex items-center gap-1 text-xs">
-                        <ShieldCheck className="h-3 w-3" /> {cert.status || "VERIFIED"}
+                        <ShieldCheck className="h-3 w-3" /> {cert.verification_status ? "VERIFIED" : "PENDING"}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex flex-wrap gap-4">
-                      <span>Issued By: <strong className="text-foreground">{cert.issuing_authority}</strong></span>
-                      <span>Issued: {cert.issue_date}</span>
-                      <span>Expires: {cert.expiry_date}</span>
+                      <span>Verified By: <strong className="text-foreground">{cert.verified_by}</strong></span>
+                      <span>Issued: {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : "N/A"}</span>
+                      <span>Expires: {cert.expires_at ? new Date(cert.expires_at).toLocaleDateString() : "N/A"}</span>
                     </div>
-                    {cert.verification_hash && (
+                    {cert.certificate_number && (
                       <p className="text-[10px] text-muted-foreground font-mono truncate max-w-xl">
-                        Provenance Hash: {cert.verification_hash}
+                        Certificate #: {cert.certificate_number}
                       </p>
                     )}
                   </div>
