@@ -72,13 +72,17 @@ export default function MatchesPage() {
           .select("*, companies:emitter_id(name, location)")
           .order("created_at", { ascending: false });
 
-        if (!supplies || supplies.length === 0) {
+        const otherSupplies = (supplies || []).filter(
+          (s) => !company?.company_id || s.emitter_id !== company.company_id
+        );
+
+        if (otherSupplies.length === 0) {
           setMatches([]);
           return;
         }
 
         // 3. Score each supply against the demand parameters
-        const scored: ScoredMatch[] = supplies.map((s) => {
+        const scored: ScoredMatch[] = otherSupplies.map((s) => {
           const sPurity = parseFloat(s.purity_percentage) || 95;
           const sQty = parseFloat(s.available_quantity) || 100;
           const sPrice = parseFloat(s.asking_price) || 4000;

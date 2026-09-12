@@ -68,11 +68,15 @@ export interface Match {
 
 export interface Bid {
   bid_id: string;
-  match_id: string;
+  match_id?: string;
+  supply_id?: string;
+  demand_id?: string;
   bidder_id: string;
   amount: number;
+  quantity?: number;
   bid_type: BidType;
   status: BidStatus;
+  notes?: string;
   created_at: string;
   bidder?: Company;
 }
