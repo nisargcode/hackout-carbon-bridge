@@ -94,6 +94,21 @@ export default function BidsPage() {
           status: "ACTIVE",
         });
 
+        // Subtract accepted quantity from available supply volume
+        const { data: supplyData } = await supabase
+          .from("co2_supplies")
+          .select("available_quantity")
+          .eq("supply_id", bid.supply_id)
+          .single();
+
+        if (supplyData) {
+          const newQuantity = Math.max(0, supplyData.available_quantity - qty);
+          await supabase
+            .from("co2_supplies")
+            .update({ available_quantity: newQuantity })
+            .eq("supply_id", bid.supply_id);
+        }
+
         // 3. Notify Buyer of acceptance
         await createNotification({
           recipient_id: bid.bidder_id,
@@ -129,15 +144,22 @@ export default function BidsPage() {
     }
   };
 
+  const [counterNote, setCounterNote] = useState("");
+
   const handleCounter = async () => {
     if (!activeBid || !counterPrice || !company?.company_id) return;
     try {
       const supabase = createClient();
+      const updatedNotes = counterNote 
+        ? `${company.name} countered: "${counterNote}"`
+        : `${company.name} proposed a new price.`;
+
       const { error } = await supabase
         .from("bids")
         .update({
           status: "COUNTER_OFFER",
           amount: Number(counterPrice),
+          notes: updatedNotes,
           updated_at: new Date().toISOString(),
         })
         .eq("bid_id", activeBid.bid_id);
@@ -147,9 +169,11 @@ export default function BidsPage() {
         return;
       }
 
-      // Notify the bidder of counter-offer
+      // Notify the other party of counter-offer
+      const recipientId = activeBid.bidder_id === company.company_id ? activeBid.supply?.emitter_id : activeBid.bidder_id;
+      
       await createNotification({
-        recipient_id: activeBid.bidder_id,
+        recipient_id: recipientId,
         sender_id: company.company_id,
         title: "Counter Offer Received",
         message: `${company.name} submitted a counter offer of ₹${Number(counterPrice).toLocaleString()}/t for your bid.`,
@@ -160,12 +184,13 @@ export default function BidsPage() {
 
       setBids((prev) =>
         prev.map((b) =>
-          b.bid_id === activeBid.bid_id ? { ...b, status: "COUNTER_OFFER", amount: Number(counterPrice) } : b,
+          b.bid_id === activeBid.bid_id ? { ...b, status: "COUNTER_OFFER", amount: Number(counterPrice), notes: updatedNotes } : b,
         ),
       );
       toast.success(`Counter offer of ₹${counterPrice}/t submitted!`);
       setActiveBid(null);
       setCounterPrice("");
+      setCounterNote("");
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -251,7 +276,7 @@ export default function BidsPage() {
             </div>
 
             {/* Action buttons */}
-            {b.status === "PENDING" && isIncoming && (
+            {((b.status === "PENDING" && isIncoming) || (b.status === "COUNTER_OFFER" && !b.notes?.startsWith(company?.name || ""))) && (
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
@@ -280,6 +305,7 @@ export default function BidsPage() {
                       onClick={() => {
                         setActiveBid(b);
                         setCounterPrice(b.amount?.toString() || "");
+                        setCounterNote("");
                       }}
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-1" />
@@ -303,6 +329,14 @@ export default function BidsPage() {
                           onChange={(e) => setCounterPrice(e.target.value)}
                         />
                         <span className="text-sm text-muted-foreground">/ton</span>
+                      </div>
+                      <div className="space-y-2 pt-2">
+                        <label className="text-sm font-medium">Comment</label>
+                        <Input
+                          placeholder="Add a note to your counter offer..."
+                          value={counterNote}
+                          onChange={(e) => setCounterNote(e.target.value)}
+                        />
                       </div>
                       <Button onClick={handleCounter} className="w-full">
                         Submit Counter Offer

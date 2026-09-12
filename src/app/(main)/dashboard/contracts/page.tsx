@@ -45,8 +45,40 @@ export default function ContractsPage() {
     loadContracts();
   }, [company?.company_id]);
 
-  const downloadContract = (id: string) => {
-    toast.success(`Exporting signed legally-binding contract: ${id}.pdf`);
+  const downloadContract = (c: any) => {
+    toast.success(`Exporting signed legally-binding contract: ${c.contract_id}.txt`);
+    const content = `===========================================
+CARBON BRIDGE - LEGALLY BINDING CONTRACT
+===========================================
+
+Contract ID: ${c.contract_id}
+Status: ${c.status}
+Type: ${c.contract_type}
+
+SELLER (EMITTER): ${c.seller?.name || "N/A"}
+BUYER: ${c.buyer?.name || "N/A"}
+
+AGREEMENT DETAILS:
+- Quantity: ${c.quantity} tons
+- Unit Price: ₹${c.unit_price} / ton
+- Total Value: ₹${c.total_value}
+- Start Date: ${c.start_date}
+- End Date: ${c.end_date}
+
+This document serves as a digitally verified proof of trade 
+on the Carbon Bridge platform.
+
+Generated on: ${new Date().toISOString()}
+`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Contract_${c.contract_id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -193,8 +225,8 @@ export default function ContractsPage() {
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" /> Legally validated under Indian Carbon Exchange guidelines
                     </span>
-                    <Button size="sm" variant="outline" onClick={() => downloadContract(c.contract_id)}>
-                      <Download className="h-3.5 w-3.5 mr-1.5" /> Download Legal PDF
+                    <Button size="sm" variant="outline" onClick={() => downloadContract(c)}>
+                      <Download className="h-3.5 w-3.5 mr-1.5" /> Download Legal Document
                     </Button>
                   </div>
                 </CardContent>

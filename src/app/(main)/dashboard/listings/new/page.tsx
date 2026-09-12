@@ -26,11 +26,26 @@ const schema = z.object({
   capture_method: z.string().min(1),
   source_industry: z.string().min(1),
   location: z.string().min(2),
-  availability_start: z.string().min(1),
-  availability_end: z.string().min(1),
+  availability_start: z.string().min(1, "Start date is required"),
+  availability_end: z.string().min(1, "End date is required"),
   minimum_order: z.coerce.number().positive(),
   asking_price: z.coerce.number().positive(),
   is_verified: z.boolean().default(false),
+}).refine(data => {
+  const start = new Date(data.availability_start);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return start >= today;
+}, {
+  message: "Available from date cannot be in the past",
+  path: ["availability_start"],
+}).refine(data => {
+  const start = new Date(data.availability_start);
+  const end = new Date(data.availability_end);
+  return start < end;
+}, {
+  message: "Available until date must be after available from date",
+  path: ["availability_end"],
 });
 
 type FormValues = z.infer<typeof schema>;

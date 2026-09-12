@@ -26,7 +26,15 @@ const schema = z.object({
   application: z.string().min(2),
   max_price: z.coerce.number().positive(),
   required_location: z.string().min(2),
-  delivery_deadline: z.string().min(1),
+  delivery_deadline: z.string().min(1, "Delivery deadline is required"),
+}).refine(data => {
+  const deadline = new Date(data.delivery_deadline);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return deadline >= today;
+}, {
+  message: "Deadline cannot be in the past",
+  path: ["delivery_deadline"],
 });
 
 type FormValues = z.infer<typeof schema>;
