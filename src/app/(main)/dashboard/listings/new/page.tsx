@@ -46,6 +46,11 @@ const schema = z.object({
 }, {
   message: "Available until date must be after available from date",
   path: ["availability_end"],
+}).refine(data => {
+  return data.minimum_order <= data.available_quantity;
+}, {
+  message: "Minimum order cannot exceed available quantity",
+  path: ["minimum_order"],
 });
 
 type FormValues = z.infer<typeof schema>;

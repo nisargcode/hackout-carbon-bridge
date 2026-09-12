@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, Download, ShieldCheck, Calendar, Package } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,39 +47,53 @@ export default function ContractsPage() {
   }, [company?.company_id]);
 
   const downloadContract = (c: any) => {
-    toast.success(`Exporting signed legally-binding contract: ${c.contract_id}.txt`);
-    const content = `===========================================
-CARBON BRIDGE - LEGALLY BINDING CONTRACT
-===========================================
-
-Contract ID: ${c.contract_id}
-Status: ${c.status}
-Type: ${c.contract_type}
-
-SELLER (EMITTER): ${c.seller?.name || "N/A"}
-BUYER: ${c.buyer?.name || "N/A"}
-
-AGREEMENT DETAILS:
-- Quantity: ${c.quantity} tons
-- Unit Price: ₹${c.unit_price} / ton
-- Total Value: ₹${c.total_value}
-- Start Date: ${c.start_date}
-- End Date: ${c.end_date}
-
-This document serves as a digitally verified proof of trade 
-on the Carbon Bridge platform.
-
-Generated on: ${new Date().toISOString()}
-`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Contract_${c.contract_id}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    toast.success(`Exporting signed legally-binding contract: ${c.contract_id}.pdf`);
+    
+    try {
+      const doc = new jsPDF();
+      
+      // Document styling and text
+      doc.setFontSize(22);
+      doc.text("CARBON BRIDGE", 105, 20, { align: "center" });
+      
+      doc.setFontSize(14);
+      doc.text("LEGALLY BINDING CONTRACT", 105, 30, { align: "center" });
+      
+      doc.setFontSize(11);
+      doc.text(`Contract ID: ${c.contract_id}`, 20, 50);
+      doc.text(`Status: ${c.status}`, 20, 58);
+      doc.text(`Type: ${c.contract_type}`, 20, 66);
+      doc.text(`Generated on: ${new Date().toISOString()}`, 20, 74);
+      
+      doc.setLineWidth(0.5);
+      doc.line(20, 80, 190, 80);
+      
+      doc.setFontSize(12);
+      doc.text("PARTIES", 20, 95);
+      doc.setFontSize(11);
+      doc.text(`SELLER (EMITTER): ${c.seller?.name || "N/A"}`, 25, 105);
+      doc.text(`BUYER: ${c.buyer?.name || "N/A"}`, 25, 113);
+      
+      doc.setFontSize(12);
+      doc.text("AGREEMENT DETAILS", 20, 133);
+      doc.setFontSize(11);
+      doc.text(`- Quantity: ${c.quantity} tons`, 25, 143);
+      doc.text(`- Unit Price: Rs. ${c.unit_price} / ton`, 25, 151);
+      doc.text(`- Total Value: Rs. ${c.total_value}`, 25, 159);
+      doc.text(`- Start Date: ${c.start_date}`, 25, 167);
+      doc.text(`- End Date: ${c.end_date}`, 25, 175);
+      
+      doc.line(20, 190, 190, 190);
+      
+      doc.setFontSize(10);
+      doc.text("This document serves as a digitally verified proof of trade", 105, 205, { align: "center" });
+      doc.text("on the Carbon Bridge platform.", 105, 211, { align: "center" });
+      
+      doc.save(`Contract_${c.contract_id}.pdf`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate PDF. Make sure jspdf is installed.");
+    }
   };
 
   if (loading) {

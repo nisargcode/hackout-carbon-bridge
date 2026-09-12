@@ -103,9 +103,13 @@ export default function BidsPage() {
 
         if (supplyData) {
           const newQuantity = Math.max(0, supplyData.available_quantity - qty);
+          const updateData: any = { available_quantity: newQuantity };
+          if (newQuantity === 0) {
+            updateData.status = "SOLD_OUT";
+          }
           await supabase
             .from("co2_supplies")
-            .update({ available_quantity: newQuantity })
+            .update(updateData)
             .eq("supply_id", bid.supply_id);
         }
 
