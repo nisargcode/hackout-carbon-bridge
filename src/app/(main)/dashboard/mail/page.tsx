@@ -264,7 +264,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background/50 relative">
+      <div className="flex-1 flex flex-col bg-background/50 relative min-h-0">
         {selectedPartner ? (
           <>
             {/* Chat Header */}
@@ -297,7 +297,8 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat Messages */}
-            <ScrollArea className="flex-1 p-6">
+            <ScrollArea className="flex-1 min-h-0 overflow-hidden">
+              <div className="p-6">
               {loadingChat ? (
                 <div className="flex items-center justify-center mt-20 text-muted-foreground text-sm">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading conversation...
@@ -355,6 +356,7 @@ export default function MessagesPage() {
                   <div ref={scrollRef} />
                 </div>
               )}
+              </div>
             </ScrollArea>
 
             {/* Chat Input */}
