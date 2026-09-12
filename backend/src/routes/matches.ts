@@ -5,12 +5,11 @@ import { CO2Supply, DemandRequest } from '../types';
 
 const router = Router();
 
-// GET calculated AI matches for a demand request
+// GET calculated AI matches between real demand requests and active supplies in the database
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { demand_id } = req.query;
+    const { demand_id, buyer_id } = req.query;
 
-    // Fetch demand request
     let demand: DemandRequest | null = null;
     if (demand_id) {
       const { data } = await supabase
@@ -19,73 +18,61 @@ router.get('/', async (req: Request, res: Response) => {
         .eq('request_id', demand_id)
         .single();
       demand = data;
+    } else if (buyer_id) {
+      const { data } = await supabase
+        .from('demand_requests')
+        .select('*')
+        .eq('buyer_id', buyer_id)
+        .eq('status', 'OPEN')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      demand = data;
+    } else {
+      // Get the latest open demand in the system
+      const { data } = await supabase
+        .from('demand_requests')
+        .select('*')
+        .eq('status', 'OPEN')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      demand = data;
     }
 
     if (!demand) {
-      demand = {
-        request_id: 'default-demand',
-        buyer_id: '33333333-3333-3333-3333-333333333333',
-        required_quantity: 200,
-        required_purity: 97.0,
-        application: 'Fuel synthesis',
-        max_price: 4500,
-        required_location: 'Pune, Maharashtra',
-        delivery_deadline: '2026-10-15',
-        status: 'OPEN',
-      };
+      res.json({
+        message: 'No open demand request found to match against. Please create a demand request first.',
+        data: [],
+      });
+      return;
     }
 
-    // Fetch active supplies
-    const { data: supplies } = await supabase
+    // Fetch genuine active supplies from database
+    const { data: supplies, error: supplyError } = await supabase
       .from('co2_supplies')
       .select('*, emitter:companies(*)')
       .eq('status', 'ACTIVE');
 
-    const supplyList = (supplies && supplies.length > 0) ? supplies : [
-      {
-        supply_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-        emitter_id: '11111111-1111-1111-1111-111111111111',
-        available_quantity: 4500,
-        quantity_unit: 'tons',
-        purity_percentage: 98.5,
-        physical_state: 'Liquid',
-        capture_method: 'Post-combustion',
-        source_industry: 'Cement',
-        location: 'Mumbai, Maharashtra',
-        availability_start: '2026-09-01',
-        availability_end: '2027-03-01',
-        minimum_order: 50,
-        asking_price: 4200,
-        certification: { standard: 'ISO 14064' },
-        status: 'ACTIVE',
-        emitter: { name: 'ABC Cement Works', location: 'Mumbai, MH' }
-      },
-      {
-        supply_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-        emitter_id: '22222222-2222-2222-2222-222222222222',
-        available_quantity: 3200,
-        quantity_unit: 'tons',
-        purity_percentage: 96.2,
-        physical_state: 'Gas',
-        capture_method: 'Pre-combustion',
-        source_industry: 'Steel',
-        location: 'Jamshedpur, Jharkhand',
-        availability_start: '2026-09-01',
-        availability_end: '2026-12-01',
-        minimum_order: 100,
-        asking_price: 3800,
-        certification: { standard: 'Bureau Veritas' },
-        status: 'ACTIVE',
-        emitter: { name: 'Tata Steel Jamshedpur', location: 'Jamshedpur, JH' }
-      }
-    ];
+    if (supplyError) {
+      res.status(400).json({ error: supplyError.message });
+      return;
+    }
 
-    // Compute scores
-    const matches = supplyList.map((supply) => {
+    if (!supplies || supplies.length === 0) {
+      res.json({
+        message: 'No active CO2 supplies currently listed in the database.',
+        data: [],
+      });
+      return;
+    }
+
+    // Compute genuine matching scores using the weighted algorithm
+    const matches = supplies.map((supply) => {
       const matchResult = calculateMatchScore(supply as CO2Supply, demand as DemandRequest);
       return {
         supply,
-        demand_id: demand?.request_id,
+        demand,
         match_score: matchResult.totalScore,
         breakdown: matchResult.breakdown,
         compatible: matchResult.compatible,

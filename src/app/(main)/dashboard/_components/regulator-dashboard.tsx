@@ -1,52 +1,111 @@
 "use client";
 
-import { ShieldCheck, ReceiptText, AlertCircle, BarChart2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ShieldCheck, ReceiptText, AlertCircle, BarChart2, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
-import { useAuth } from "@/contexts/auth-context";
-
-const volumeData = [
-  { month: "Apr", volume: 1200 },
-  { month: "May", volume: 1800 },
-  { month: "Jun", volume: 2200 },
-  { month: "Jul", volume: 1900 },
-  { month: "Aug", volume: 2600 },
-  { month: "Sep", volume: 3100 },
-];
-
-const chartConfig = {
-  volume: { label: "Volume (tons)", color: "var(--chart-1)" },
-};
-
-const recentTransactions = [
-  { id: "TX-001", seller: "Steel Corp", buyer: "GreenFuel", qty: "200 tons", amount: "₹8.4L", verified: true },
-  { id: "TX-002", seller: "PowerGen", buyer: "AlgaeTech", qty: "150 tons", amount: "₹5.7L", verified: true },
-  { id: "TX-003", seller: "CementCo", buyer: "CarbonMat", qty: "500 tons", amount: "₹22.5L", verified: false },
-];
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { createClient } from "@/lib/supabase/client";
 
 export function RegulatorDashboard() {
-  const { company } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalTransactions: 0,
+    verifiedCerts: 0,
+    pendingReview: 0,
+    co2Tracked: 0,
+  });
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const supabase = createClient();
+
+        // 1. Fetch counts
+        const { count: txCount } = await supabase
+          .from("contracts")
+          .select("*", { count: "exact", head: true });
+        const { count: certCount } = await supabase
+          .from("certificates")
+          .select("*", { count: "exact", head: true });
+
+        // 2. Fetch shipments for mass balance tracking
+        const { data: shipments } = await supabase
+          .from("shipments")
+          .select("quantity, status");
+        const totalCO2 =
+          shipments?.reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0) || 0;
+        const pending =
+          shipments?.filter((s) => s.status !== "VERIFIED").length || 0;
+
+        // 3. Fetch recent contracts
+        const { data: contracts } = await supabase
+          .from("contracts")
+          .select("*, seller:supplier_id(name), buyer:buyer_id(name)")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        setStats({
+          totalTransactions: txCount || 0,
+          verifiedCerts: certCount || 0,
+          pendingReview: pending,
+          co2Tracked: totalCO2,
+        });
+        setRecentTransactions(contracts || []);
+      } catch (err) {
+        console.error("Failed to load regulator stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const metrics = [
+    { label: "Total Transactions", value: stats.totalTransactions.toString(), icon: ReceiptText },
+    { label: "Verified Certificates", value: stats.verifiedCerts.toString(), icon: ShieldCheck },
+    { label: "Pending Review", value: stats.pendingReview.toString(), icon: AlertCircle },
+    { label: "CO₂ Mass Tracked", value: `${stats.co2Tracked.toLocaleString()} tons`, icon: BarChart2 },
+  ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-bold text-2xl text-foreground">
-          Regulatory Overview
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Monitor all CO₂ transactions and compliance status.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-bold text-2xl text-foreground">
+            Regulatory Oversight & Statutory Audit
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Real-time compliance monitoring, verified chain-of-custody, and carbon accounting.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/dashboard/transactions">
+            Full Transaction Ledger
+            <ArrowRight className="h-4 w-4 ml-1.5" />
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        {[
-          { label: "Total Transactions", value: "284", icon: ReceiptText },
-          { label: "Verified Certs", value: "231", icon: ShieldCheck },
-          { label: "Pending Review", value: "12", icon: AlertCircle },
-          { label: "CO₂ Tracked", value: "48,200 tons", icon: BarChart2 },
-        ].map((m) => {
+        {metrics.map((m) => {
           const Icon = m.icon;
           return (
             <Card key={m.label}>
@@ -64,49 +123,51 @@ export function RegulatorDashboard() {
         })}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-4">
         <Card>
-          <CardHeader>
-            <CardTitle>CO₂ Trade Volume</CardTitle>
-            <CardDescription>Monthly volume in tons</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[220px] w-full">
-              <LineChart data={volumeData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="volume" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>All marketplace transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{tx.seller} → {tx.buyer}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {tx.qty} · {tx.amount}
-                    </p>
-                  </div>
-                  <Badge variant={tx.verified ? "default" : "outline"}>
-                    {tx.verified ? "Verified" : "Pending"}
-                  </Badge>
-                </div>
-              ))}
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle>Recent Marketplace Transactions</CardTitle>
+              <CardDescription>Bilateral contracts registered under statutory oversight</CardDescription>
             </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/transactions">
+                View Ledger
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {recentTransactions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground space-y-2">
+                <ReceiptText className="h-8 w-8 mx-auto stroke-1" />
+                <p className="text-sm">No marketplace transactions recorded yet.</p>
+                <p className="text-xs">
+                  When emitters and buyers execute bilateral contracts, audits will track here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentTransactions.map((tx) => (
+                  <div
+                    key={tx.contract_id}
+                    className="flex items-center justify-between rounded-lg border border-border p-3.5"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">
+                        {tx.seller?.name || "Seller"} → {tx.buyer?.name || "Buyer"}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {tx.total_quantity} tons @ ₹{Number(tx.unit_price || 0).toLocaleString()}/ton · Value: ₹{(Number(tx.total_quantity || 0) * Number(tx.unit_price || 0)).toLocaleString()}
+                      </p>
+                    </div>
+                    <Badge variant={tx.status === "ACTIVE" ? "default" : "outline"}>
+                      {tx.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -13,16 +13,10 @@ router.get('/', async (req: Request, res: Response) => {
     }
     const { data, error } = await query;
     if (error) {
-      // Fallback mock
-      res.json({
-        data: [
-          { company_id: '11111111-1111-1111-1111-111111111111', name: 'ABC Cement Works', company_type: 'EMITTER', location: 'Mumbai, MH', sustainability_score: 96.0 },
-          { company_id: '33333333-3333-3333-3333-333333333333', name: 'CleanFuel Synthesis', company_type: 'CO2_BUYER', location: 'Pune, MH', sustainability_score: 92.0 },
-        ]
-      });
+      res.status(400).json({ error: error.message });
       return;
     }
-    res.json({ data });
+    res.json({ data: data || [] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

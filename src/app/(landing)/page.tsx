@@ -52,9 +52,6 @@ export default function LandingPage() {
 
           {/* Nav actions */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" asChild>
-              <Link href="/dashboard">Explore Dashboard</Link>
-            </Button>
             <Button variant="ghost" onClick={openLogin}>
               Login
             </Button>
@@ -93,16 +90,6 @@ export default function LandingPage() {
                 onClick={openLogin}
               >
                 Sign in
-              </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="rounded-full px-8 text-base border border-border"
-                asChild
-              >
-                <Link href="/dashboard">
-                  Explore Demo (No Login) →
-                </Link>
               </Button>
             </div>
 
@@ -214,14 +201,9 @@ export default function LandingPage() {
             <p className="mb-8 text-muted-foreground">
               Join the circular carbon economy. List your CO₂ or find your next supplier.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button size="lg" className="rounded-full px-10 text-base" onClick={openRegister}>
-                Get started for free
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-10 text-base" asChild>
-                <Link href="/dashboard">Direct Dashboard Access</Link>
-              </Button>
-            </div>
+            <Button size="lg" className="rounded-full px-10 text-base" onClick={openRegister}>
+              Get started for free
+            </Button>
           </div>
         </section>
       </main>

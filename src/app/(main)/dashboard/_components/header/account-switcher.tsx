@@ -1,91 +1,71 @@
 "use client";
 
-import { useState } from "react";
-
-import { cn } from "cn";
-import { BadgeCheck, Bell, Check, CreditCard, LogOut } from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { LogOut, Settings, Building2, UserCircle } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
-import type { CompanyType } from "@/types";
 
-export function AccountSwitcher({
-  users,
-}: {
-  readonly users: ReadonlyArray<{
-    readonly id: string;
-    readonly name: string;
-    readonly email: string;
-    readonly avatar: string;
-    readonly role: string;
-  }>;
-}) {
-  const { setDemoRole, companyType, signOut } = useAuth();
-  const [activeUser, setActiveUser] = useState(
-    users.find((u) => u.role === companyType) || users[0]
-  );
+export function AccountSwitcher() {
+  const { user, company, companyType, signOut } = useAuth();
+  const router = useRouter();
 
-  const handleSelectUser = (user: (typeof users)[number]) => {
-    setActiveUser(user);
-    if (user.role) {
-      setDemoRole(user.role as CompanyType);
-    }
+  const displayName = company?.name || user?.email?.split("@")[0] || "Guest User";
+  const email = user?.email || company?.contact_details?.email as string || "Not signed in";
+  const role = companyType || "MEMBER";
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
   };
-
-  if (!activeUser) {
-    return null;
-  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="size-8 rounded-lg cursor-pointer">
-          <AvatarImage src={activeUser.avatar || undefined} alt={activeUser.name} />
-          <AvatarFallback>{getInitials(activeUser.name)}</AvatarFallback>
-        </Avatar>
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-lg p-1 text-left transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <Avatar className="size-8 rounded-lg">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="min-w-56 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
-        <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">Switch Role Persona:</div>
-        {users.map((user) => (
-          <DropdownMenuItem
-            key={user.email}
-            className={cn("p-0 cursor-pointer", user.id === activeUser.id && "bg-accent/50")}
-            aria-current={user.id === activeUser.id ? "true" : undefined}
-            onClick={() => handleSelectUser(user)}
-          >
-            <div className="flex w-full items-center gap-2 px-1 py-1.5">
-              <Avatar className="size-9 rounded-lg">
-                <AvatarImage src={user.avatar || undefined} alt={user.name} />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
-              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs capitalize text-muted-foreground">{user.role}</span>
-              </div>
-              <span
-                className={cn(
-                  "mr-1 flex size-5 items-center justify-center rounded-full text-primary opacity-0",
-                  user.id === activeUser.id && "opacity-100",
-                )}
-              >
-                <Check aria-hidden="true" />
-              </span>
+      <DropdownMenuContent className="min-w-64 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
+        <DropdownMenuLabel className="font-normal p-2">
+          <div className="flex flex-col space-y-1">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold leading-none truncate max-w-[160px]">{displayName}</p>
+              <Badge variant="outline" className="text-[10px] font-medium">
+                {role}
+              </Badge>
             </div>
-          </DropdownMenuItem>
-        ))}
+            <p className="text-xs text-muted-foreground truncate">{email}</p>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut} className="cursor-pointer">
-          <LogOut />
-          Reset Session
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="cursor-pointer">
+            <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+            Company Settings
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -5,63 +5,64 @@ import { evaluatePricingAction } from '../services/pricingEngine';
 
 const router = Router();
 
+// GET genuine bids from database
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase.from('bids').select('*, bidder:companies(*)');
-    if (error || !data || data.length === 0) {
-      res.json({
-        data: [
-          {
-            bid_id: 'BID-101',
-            partner: 'CleanFuel Synthesis Ltd',
-            quantity: '200 tons',
-            amount: 4100,
-            originalPrice: 4200,
-            bid_type: 'BID',
-            status: 'PENDING',
-            created_at: new Date().toISOString()
-          },
-          {
-            bid_id: 'BID-102',
-            partner: 'GreenGrow AgriTech',
-            quantity: '150 tons',
-            amount: 4200,
-            originalPrice: 4200,
-            bid_type: 'BUY_NOW',
-            status: 'ACCEPTED',
-            created_at: new Date().toISOString()
-          }
-        ]
-      });
+    const { company_id, supply_id } = req.query;
+
+    let query = supabase
+      .from('bids')
+      .select('*, bidder:companies(*), supply:co2_supplies(*, emitter:companies(*))')
+      .order('created_at', { ascending: false });
+
+    if (company_id) {
+      // either incoming or outgoing
+      query = query.or(`bidder_id.eq.${company_id}`);
+    }
+    if (supply_id) {
+      query = query.eq('supply_id', supply_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      res.status(400).json({ error: error.message });
       return;
     }
-    res.json({ data });
+
+    res.json({ data: data || [] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// POST new bid
 router.post('/', authenticateJWT, async (req: Request, res: Response) => {
   try {
-    const bidder_id = req.user?.company_id || '33333333-3333-3333-3333-333333333333';
+    const bidder_id = req.user?.company_id;
+    if (!bidder_id) {
+      res.status(400).json({ error: 'Authenticated company profile required to submit a bid' });
+      return;
+    }
+
     const { supply_id, demand_id, amount, quantity, bid_type, listPrice, notes } = req.body;
 
     // Evaluate dynamic pricing action
-    const evaluation = evaluatePricingAction(bid_type, amount, listPrice || amount, quantity);
+    const evaluation = evaluatePricingAction(bid_type, Number(amount), Number(listPrice || amount), Number(quantity));
 
     const { data, error } = await supabase
       .from('bids')
       .insert({
         supply_id,
-        demand_id,
+        demand_id: demand_id || null,
         bidder_id,
-        amount,
-        quantity,
+        amount: Number(amount),
+        quantity: Number(quantity),
         bid_type: bid_type || 'BID',
         status: evaluation.nextStatus,
         notes,
       })
-      .select()
+      .select('*, bidder:companies(*), supply:co2_supplies(*)')
       .single();
 
     if (error) {
@@ -70,7 +71,7 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
     }
 
     res.status(201).json({
-      message: 'Bid submitted',
+      message: 'Bid successfully recorded in database',
       data,
       evaluation,
     });
@@ -85,16 +86,19 @@ router.patch('/:id/status', authenticateJWT, async (req: Request, res: Response)
     const { id } = req.params;
     const { status, counter_amount } = req.body;
 
-    const updatePayload: any = { status };
+    const updatePayload: any = {
+      status,
+      updated_at: new Date().toISOString()
+    };
     if (counter_amount) {
-      updatePayload.amount = counter_amount;
+      updatePayload.amount = Number(counter_amount);
     }
 
     const { data, error } = await supabase
       .from('bids')
       .update(updatePayload)
       .eq('bid_id', id)
-      .select()
+      .select('*, bidder:companies(*), supply:co2_supplies(*)')
       .single();
 
     if (error) {
@@ -102,7 +106,7 @@ router.patch('/:id/status', authenticateJWT, async (req: Request, res: Response)
       return;
     }
 
-    res.json({ message: `Bid updated to ${status}`, data });
+    res.json({ message: `Bid updated to ${status} in database`, data });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

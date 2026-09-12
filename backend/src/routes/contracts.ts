@@ -4,43 +4,28 @@ import { authenticateJWT } from '../middleware/auth';
 
 const router = Router();
 
-// GET all orders / contracts
+// GET all orders / contracts from database
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from('contracts')
-      .select('*, buyer:companies!contracts_buyer_id_fkey(name), seller:companies!contracts_seller_id_fkey(name)');
+    const { company_id } = req.query;
 
-    if (error || !data || data.length === 0) {
-      res.json({
-        data: [
-          {
-            contract_id: 'CTR-2026-089',
-            title: 'Annual High-Purity CO₂ Offtake Agreement',
-            quantity: 2400,
-            unit_price: 4150,
-            total_value: 9960000,
-            contract_type: 'LONG_TERM',
-            status: 'ACTIVE',
-            start_date: '2026-10-01',
-            end_date: '2027-09-30',
-          },
-          {
-            contract_id: 'CTR-2026-092',
-            title: 'Spot Purchase Agreement #092',
-            quantity: 150,
-            unit_price: 4200,
-            total_value: 630000,
-            contract_type: 'SPOT',
-            status: 'ACTIVE',
-            start_date: '2026-09-10',
-            end_date: '2026-09-30',
-          }
-        ]
-      });
+    let query = supabase
+      .from('contracts')
+      .select('*, supply:co2_supplies(*), buyer:companies!contracts_buyer_id_fkey(*), seller:companies!contracts_seller_id_fkey(*)')
+      .order('created_at', { ascending: false });
+
+    if (company_id) {
+      query = query.or(`buyer_id.eq.${company_id},seller_id.eq.${company_id}`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      res.status(400).json({ error: error.message });
       return;
     }
-    res.json({ data });
+
+    res.json({ data: data || [] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -50,7 +35,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', authenticateJWT, async (req: Request, res: Response) => {
   try {
     const { supply_id, buyer_id, seller_id, quantity, unit_price, contract_type, start_date, end_date } = req.body;
-    const total_value = quantity * unit_price;
+    const total_value = Number(quantity) * Number(unit_price);
 
     const { data, error } = await supabase
       .from('contracts')
@@ -58,15 +43,15 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
         supply_id,
         buyer_id,
         seller_id,
-        quantity,
-        unit_price,
+        quantity: Number(quantity),
+        unit_price: Number(unit_price),
         total_value,
         contract_type: contract_type || 'SPOT',
-        start_date,
-        end_date,
+        start_date: start_date || new Date().toISOString().split('T')[0],
+        end_date: end_date || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
         status: 'ACTIVE',
       })
-      .select()
+      .select('*, supply:co2_supplies(*), buyer:companies!contracts_buyer_id_fkey(*), seller:companies!contracts_seller_id_fkey(*)')
       .single();
 
     if (error) {
@@ -74,7 +59,18 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(201).json({ message: 'Contract created successfully', data });
+    // Also automatically create initial shipment record in database for logistics fulfillment!
+    await supabase.from('shipments').insert({
+      contract_id: data.contract_id,
+      supplier_id: seller_id,
+      buyer_id: buyer_id,
+      quantity: Number(quantity),
+      pickup_location: data.supply?.location || 'Origin Terminal',
+      destination: data.buyer?.location || 'Destination Facility',
+      status: 'MATCHED',
+    });
+
+    res.status(201).json({ message: 'Contract created successfully in database', data });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

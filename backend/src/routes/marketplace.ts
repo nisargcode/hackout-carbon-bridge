@@ -3,12 +3,16 @@ import { supabase } from '../db/supabase';
 
 const router = Router();
 
-// GET marketplace listings with filtering
+// GET marketplace listings with filtering from genuine database
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { min_purity, max_price, state, search } = req.query;
+    const { min_purity, max_price, state, search, source_industry } = req.query;
 
-    let query = supabase.from('co2_supplies').select('*, emitter:companies(*)').eq('status', 'ACTIVE');
+    let query = supabase
+      .from('co2_supplies')
+      .select('*, emitter:companies(*)')
+      .eq('status', 'ACTIVE')
+      .order('created_at', { ascending: false });
 
     if (min_purity) {
       query = query.gte('purity_percentage', Number(min_purity));
@@ -19,42 +23,21 @@ router.get('/', async (req: Request, res: Response) => {
     if (state && state !== 'all') {
       query = query.ilike('physical_state', `%${state}%`);
     }
+    if (source_industry && source_industry !== 'all') {
+      query = query.ilike('source_industry', `%${source_industry}%`);
+    }
+    if (search) {
+      query = query.or(`location.ilike.%${search}%,capture_method.ilike.%${search}%,source_industry.ilike.%${search}%`);
+    }
 
     const { data, error } = await query;
 
-    if (error || !data || data.length === 0) {
-      res.json({
-        data: [
-          {
-            supply_id: 'S001',
-            company: 'Steel Corp India',
-            location: 'Mumbai, MH',
-            quantity: '500 tons',
-            purity: 98.5,
-            price: 4200,
-            captureMethod: 'Post-combustion',
-            physicalState: 'Liquid',
-            certification: true,
-            matchScore: 94,
-          },
-          {
-            supply_id: 'S002',
-            company: 'PowerGen Ltd.',
-            location: 'Surat, GJ',
-            quantity: '800 tons',
-            purity: 96.2,
-            price: 3800,
-            captureMethod: 'Pre-combustion',
-            physicalState: 'Gas',
-            certification: true,
-            matchScore: 87,
-          }
-        ]
-      });
+    if (error) {
+      res.status(400).json({ error: error.message });
       return;
     }
 
-    res.json({ data });
+    res.json({ data: data || [] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

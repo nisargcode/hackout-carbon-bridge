@@ -1,16 +1,52 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ReceiptText, CheckCircle, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { createClient } from "@/lib/supabase/client";
 
 export default function TransactionsPage() {
-  const txs = [
-    { id: "TX-2026-9011", date: "Sep 11, 2026", seller: "ABC Cement Works", buyer: "CleanFuel Synthesis", volume: "200 tons", value: "₹8,40,000", state: "Delivered & Verified", tax: "Exempt" },
-    { id: "TX-2026-9012", date: "Sep 10, 2026", seller: "ABC Cement Works", buyer: "GreenGrow AgriTech", volume: "150 tons", value: "₹6,30,000", state: "Delivered & Verified", tax: "Exempt" },
-    { id: "TX-2026-9013", date: "Sep 09, 2026", seller: "Tata Steel Jamshedpur", buyer: "CarbonMat Materials", volume: "500 tons", value: "₹18,75,000", state: "In Transit", tax: "Pending" },
-    { id: "TX-2026-9014", date: "Sep 07, 2026", seller: "PowerGen Hazira", buyer: "BioSynthetics", volume: "350 tons", value: "₹13,30,000", state: "Settled", tax: "Exempt" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("contracts")
+          .select("*, seller:supplier_id(name), buyer:buyer_id(name)")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error loading transactions:", error);
+        } else {
+          setTransactions(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load transactions:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTransactions();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -21,31 +57,53 @@ export default function TransactionsPage() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        {txs.map((tx) => (
-          <Card key={tx.id} className="hover:border-primary/40 transition-colors">
-            <CardContent className="py-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm">{tx.seller} ➔ {tx.buyer}</span>
-                    <Badge variant="outline" className="text-xs">{tx.id}</Badge>
+      {transactions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground space-y-2">
+            <ReceiptText className="h-10 w-10 mx-auto stroke-1" />
+            <p className="font-semibold text-foreground text-base">No Bilateral Transactions Recorded</p>
+            <p className="text-sm">
+              All marketplace trades, contracts, and settled spot purchases are registered here for statutory audit.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {transactions.map((tx) => {
+            const val = (parseFloat(tx.total_quantity) || 0) * (parseFloat(tx.unit_price) || 0);
+
+            return (
+              <Card key={tx.contract_id} className="hover:border-primary/40 transition-colors">
+                <CardContent className="py-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm">
+                          {tx.seller?.name || "Seller"} ➔ {tx.buyer?.name || "Buyer"}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {tx.contract_id.slice(0, 8)}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground flex flex-wrap gap-4">
+                        <span>Volume: <strong className="text-foreground">{tx.total_quantity} tons</strong></span>
+                        <span>Value: <strong className="text-foreground">₹{val.toLocaleString()}</strong></span>
+                        <span>Date: {new Date(tx.created_at).toLocaleDateString()}</span>
+                        <span>Type: {tx.contract_type?.replace("_", " ")}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Badge className="bg-green-600 text-white text-xs">
+                        {tx.status || "ACTIVE"}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground flex gap-4">
-                    <span>Volume: <strong className="text-foreground">{tx.volume}</strong></span>
-                    <span>Value: <strong className="text-foreground">{tx.value}</strong></span>
-                    <span>Date: {tx.date}</span>
-                    <span>Tax Status: {tx.tax}</span>
-                  </div>
-                </div>
-                <div>
-                  <Badge className="bg-green-600 text-white text-xs">{tx.state}</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

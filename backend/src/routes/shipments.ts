@@ -6,46 +6,31 @@ import { ShipmentStatus } from '../types';
 
 const router = Router();
 
-// GET all shipments
+// GET all shipments from database
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from('shipments')
-      .select('*, supplier:companies!shipments_supplier_id_fkey(name), buyer:companies!shipments_buyer_id_fkey(name)');
+    const { company_id, status } = req.query;
 
-    if (error || !data || data.length === 0) {
-      res.json({
-        data: [
-          {
-            shipment_id: 'SHP-901',
-            supplier_id: '11111111-1111-1111-1111-111111111111',
-            buyer_id: '33333333-3333-3333-3333-333333333333',
-            route_name: 'ABC Cement (Mumbai) → CleanFuel (Pune)',
-            pickup_location: 'Mumbai, Maharashtra',
-            destination: 'Pune, Maharashtra',
-            quantity: 200,
-            transportation_cost: 38000,
-            status: 'IN_TRANSIT',
-            estimated_delivery: new Date(Date.now() + 4 * 3600000).toISOString(),
-          },
-          {
-            shipment_id: 'SHP-902',
-            supplier_id: '22222222-2222-2222-2222-222222222222',
-            buyer_id: '44444444-4444-4444-4444-444444444444',
-            route_name: 'Tata Steel (Jamshedpur) → CarbonMat (Ranchi)',
-            pickup_location: 'Jamshedpur, Jharkhand',
-            destination: 'Ranchi, Jharkhand',
-            quantity: 150,
-            transportation_cost: 29500,
-            status: 'DELIVERED',
-            estimated_delivery: new Date().toISOString(),
-          }
-        ]
-      });
+    let query = supabase
+      .from('shipments')
+      .select('*, supplier:companies!shipments_supplier_id_fkey(*), buyer:companies!shipments_buyer_id_fkey(*), carrier:companies!shipments_logistics_provider_id_fkey(*)')
+      .order('created_at', { ascending: false });
+
+    if (company_id) {
+      query = query.or(`supplier_id.eq.${company_id},buyer_id.eq.${company_id},logistics_provider_id.eq.${company_id}`);
+    }
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      res.status(400).json({ error: error.message });
       return;
     }
 
-    res.json({ data });
+    res.json({ data: data || [] });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -63,12 +48,17 @@ router.patch('/:id/advance', authenticateJWT, async (req: Request, res: Response
       .from('shipments')
       .update({ status: nextStatus, updated_at: new Date().toISOString() })
       .eq('shipment_id', id)
-      .select()
+      .select('*, supplier:companies!shipments_supplier_id_fkey(*), buyer:companies!shipments_buyer_id_fkey(*), carrier:companies!shipments_logistics_provider_id_fkey(*)')
       .single();
+
+    if (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
 
     res.json({
       message: `Shipment advanced to ${nextStatus}`,
-      data: data || { shipment_id: id, status: nextStatus }
+      data,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

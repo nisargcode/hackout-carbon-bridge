@@ -8,45 +8,49 @@ const router = Router();
 // GET all active supplies
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const { emitter_id, min_purity, max_price } = req.query;
+
+    let query = supabase
+      .from('co2_supplies')
+      .select('*, emitter:companies(*)')
+      .eq('status', 'ACTIVE')
+      .order('created_at', { ascending: false });
+
+    if (emitter_id) {
+      query = query.eq('emitter_id', emitter_id);
+    }
+    if (min_purity) {
+      query = query.gte('purity_percentage', Number(min_purity));
+    }
+    if (max_price) {
+      query = query.lte('asking_price', Number(max_price));
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+
+    res.json({ data: data || [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET single supply by ID
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
     const { data, error } = await supabase
       .from('co2_supplies')
       .select('*, emitter:companies(*)')
-      .eq('status', 'ACTIVE');
+      .eq('supply_id', id)
+      .single();
 
-    if (error || !data || data.length === 0) {
-      // Mock fallback
-      res.json({
-        data: [
-          {
-            supply_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            emitter_id: '11111111-1111-1111-1111-111111111111',
-            available_quantity: 4500,
-            quantity_unit: 'tons',
-            purity_percentage: 98.5,
-            physical_state: 'Liquid',
-            capture_method: 'Post-combustion amine scrubbing',
-            source_industry: 'Cement',
-            location: 'Mumbai, Maharashtra',
-            asking_price: 4200,
-            status: 'ACTIVE',
-            emitter: { name: 'ABC Cement Works', sustainability_score: 96 }
-          },
-          {
-            supply_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-            emitter_id: '22222222-2222-2222-2222-222222222222',
-            available_quantity: 3200,
-            quantity_unit: 'tons',
-            purity_percentage: 96.2,
-            physical_state: 'Gas',
-            capture_method: 'Pre-combustion gasification',
-            source_industry: 'Steel',
-            location: 'Jamshedpur, Jharkhand',
-            asking_price: 3800,
-            status: 'ACTIVE',
-            emitter: { name: 'Tata Steel Jamshedpur', sustainability_score: 94 }
-          }
-        ]
-      });
+    if (error) {
+      res.status(404).json({ error: error.message });
       return;
     }
 
@@ -60,6 +64,11 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', authenticateJWT, requireRole(['EMITTER', 'ADMIN']), async (req: Request, res: Response) => {
   try {
     const emitter_id = req.user?.company_id;
+    if (!emitter_id) {
+      res.status(400).json({ error: 'No company profile linked to your account' });
+      return;
+    }
+
     const {
       available_quantity,
       quantity_unit,
@@ -81,23 +90,23 @@ router.post('/', authenticateJWT, requireRole(['EMITTER', 'ADMIN']), async (req:
       .from('co2_supplies')
       .insert({
         emitter_id,
-        available_quantity,
+        available_quantity: Number(available_quantity),
         quantity_unit: quantity_unit || 'tons',
-        purity_percentage,
+        purity_percentage: Number(purity_percentage),
         physical_state,
-        temperature,
-        pressure,
+        temperature: temperature ? Number(temperature) : null,
+        pressure: pressure ? Number(pressure) : null,
         capture_method,
         source_industry,
         location,
         availability_start,
         availability_end,
-        minimum_order,
-        asking_price,
+        minimum_order: minimum_order ? Number(minimum_order) : 10,
+        asking_price: Number(asking_price),
         certification: certification || {},
         status: 'ACTIVE',
       })
-      .select()
+      .select('*, emitter:companies(*)')
       .single();
 
     if (error) {
@@ -105,7 +114,7 @@ router.post('/', authenticateJWT, requireRole(['EMITTER', 'ADMIN']), async (req:
       return;
     }
 
-    res.status(201).json({ message: 'CO2 supply listed successfully', data });
+    res.status(201).json({ message: 'CO2 supply listed successfully in database', data });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
