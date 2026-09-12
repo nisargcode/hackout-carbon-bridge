@@ -218,6 +218,21 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 12. NOTIFICATIONS (FOR BIDS, APPROVALS, CONTRACTS)
+CREATE TABLE IF NOT EXISTS public.notifications (
+  notification_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  recipient_id UUID NOT NULL REFERENCES public.companies(company_id) ON DELETE CASCADE,
+  sender_id UUID REFERENCES public.companies(company_id) ON DELETE SET NULL,
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  type VARCHAR(50) DEFAULT 'BID_RECEIVED', -- BID_RECEIVED, BID_ACCEPTED, BID_REJECTED, CONTRACT_CREATED
+  reference_id UUID,
+  reference_type VARCHAR(50) DEFAULT 'bid',
+  read_status BOOLEAN DEFAULT false,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- SEED INITIAL MOCK DATA
 INSERT INTO public.companies (company_id, name, industry, company_type, location, verification_status, sustainability_score, contact_details)
 VALUES 

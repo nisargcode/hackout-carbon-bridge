@@ -44,11 +44,11 @@ export function EmitterDashboard() {
         const currentSupplies = supplyData || [];
         setSupplies(currentSupplies);
 
-        // 2. Fetch contracts where this company is the supplier
+        // 2. Fetch contracts where this company is the supplier (seller)
         const { data: contractData } = await supabase
           .from("contracts")
           .select("*")
-          .eq("supplier_id", company.company_id);
+          .eq("seller_id", company.company_id);
 
         const contracts = contractData || [];
 
@@ -58,7 +58,7 @@ export function EmitterDashboard() {
         if (supplyIds.length > 0) {
           const { data: bidData } = await supabase
             .from("bids")
-            .select("*, companies:buyer_id(name)")
+            .select("*, companies:bidder_id(name)")
             .in("supply_id", supplyIds)
             .order("created_at", { ascending: false })
             .limit(5);
@@ -72,13 +72,13 @@ export function EmitterDashboard() {
           0
         );
         const totalSold = contracts.reduce(
-          (sum, c) => sum + (parseFloat(c.total_quantity) || 0),
+          (sum, c) => sum + (parseFloat(c.quantity) || 0),
           0
         );
         const totalRev = contracts.reduce(
           (sum, c) =>
             sum +
-            (parseFloat(c.total_quantity) || 0) * (parseFloat(c.unit_price) || 0),
+            (parseFloat(c.quantity) || 0) * (parseFloat(c.unit_price) || 0),
           0
         );
         const uniqueBuyers = new Set(contracts.map((c) => c.buyer_id)).size;
@@ -341,19 +341,24 @@ export function EmitterDashboard() {
                         {bid.companies?.name || "Industrial Buyer"}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {bid.offered_quantity} tons · ₹{bid.offered_price}/ton
+                        {bid.quantity} tons · ₹{Number(bid.amount).toLocaleString()}/ton
                       </p>
                     </div>
                     <Badge
                       variant={
-                        bid.bid_status === "ACCEPTED"
+                        bid.status === "ACCEPTED"
                           ? "default"
-                          : bid.bid_status === "REJECTED"
+                          : bid.status === "REJECTED"
                           ? "destructive"
                           : "outline"
                       }
+                      className={
+                        bid.status === "ACCEPTED"
+                          ? "bg-emerald-600 text-white hover:bg-emerald-600"
+                          : ""
+                      }
                     >
-                      {bid.bid_status}
+                      {bid.status}
                     </Badge>
                   </div>
                 ))}

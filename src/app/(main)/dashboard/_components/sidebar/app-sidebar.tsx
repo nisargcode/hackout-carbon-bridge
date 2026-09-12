@@ -30,6 +30,9 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { SupportCard } from "./support-card";
 
+import { useEffect, useState, useMemo } from "react";
+import { fetchUserNotifications } from "@/lib/notifications";
+
 function getRoleNav(companyType: string | null): NavGroup[] {
   switch (companyType) {
     case "EMITTER":
@@ -56,11 +59,48 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
   const { user, company, companyType, signOut } = useAuth();
   const router = useRouter();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!company?.company_id) return;
+    const checkNotifs = async () => {
+      try {
+        const res = await fetchUserNotifications(company.company_id);
+        setUnreadCount(res.unreadCount);
+      } catch {}
+    };
+
+    checkNotifs();
+    const interval = setInterval(checkNotifs, 8000);
+
+    const onCustomNotif = () => checkNotifs();
+    window.addEventListener("carbon_bridge_notification", onCustomNotif);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("carbon_bridge_notification", onCustomNotif);
+    };
+  }, [company?.company_id]);
 
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
 
-  const navItems = getRoleNav(companyType);
+  const baseNavItems = getRoleNav(companyType);
+
+  const navItems = useMemo(() => {
+    return baseNavItems.map((group) => ({
+      ...group,
+      items: group.items.map((item) => {
+        if (item.id === "notifications") {
+          return {
+            ...item,
+            badge: unreadCount > 0 ? unreadCount : undefined,
+          };
+        }
+        return item;
+      }),
+    }));
+  }, [baseNavItems, unreadCount]);
 
   const currentUser = {
     name: company?.name ?? user?.email ?? "User",

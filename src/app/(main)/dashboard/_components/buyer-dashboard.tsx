@@ -46,7 +46,7 @@ export function BuyerDashboard() {
         // 2. Fetch contracts
         const { data: contractData } = await supabase
           .from("contracts")
-          .select("*, companies:supplier_id(name)")
+          .select("*, companies:seller_id(name)")
           .eq("buyer_id", company.company_id);
 
         const contracts = contractData || [];
@@ -66,10 +66,10 @@ export function BuyerDashboard() {
           0
         );
         const totalUtil = contracts.reduce(
-          (sum, c) => sum + (parseFloat(c.total_quantity) || 0),
+          (sum, c) => sum + (parseFloat(c.quantity) || 0),
           0
         );
-        const uniqueSuppliers = new Set(contracts.map((c) => c.supplier_id)).size;
+        const uniqueSuppliers = new Set(contracts.map((c) => c.seller_id)).size;
         const activeCtr = contracts.filter((c) => c.status === "ACTIVE").length;
         const upcoming = currentShipments.filter(
           (s) => s.status !== "DELIVERED" && s.status !== "VERIFIED"

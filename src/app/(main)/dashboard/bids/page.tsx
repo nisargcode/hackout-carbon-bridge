@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Gavel, Check, X, ArrowRightLeft, Clock, Package } from "lucide-react";
+import { Gavel, Check, X, ArrowRightLeft, Clock, Package, Building2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,27 +13,42 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
+import { createNotification } from "@/lib/notifications";
 
 export default function BidsPage() {
-  const { company, companyType } = useAuth();
+  const { company } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bids, setBids] = useState<any[]>([]);
   const [counterPrice, setCounterPrice] = useState("");
   const [activeBid, setActiveBid] = useState<any | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchBids = async () => {
-    if (!company?.company_id) return;
+    if (!company?.company_id) {
+      setLoading(false);
+      return;
+    }
     try {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("bids")
-        .select("*, buyer:buyer_id(name), supply:supply_id(asking_price, emitter_id, physical_state, companies:emitter_id(name))")
+        .select(
+          "*, bidder:companies!bidder_id(company_id, name, location), supply:co2_supplies!supply_id(supply_id, source_industry, asking_price, emitter_id, physical_state, location, emitter:companies!emitter_id(name, location))"
+        )
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching bids:", error);
       } else {
-        setBids(data || []);
+        // Filter bids that either:
+        // 1. Were submitted to this company's supplies (Incoming)
+        // 2. Were placed by this company (Outgoing)
+        const relevant = (data || []).filter(
+          (b) =>
+            b.bidder_id === company.company_id ||
+            b.supply?.emitter_id === company.company_id
+        );
+        setBids(relevant);
       }
     } catch (err) {
       console.error("Failed to load bids:", err);
@@ -46,37 +61,88 @@ export default function BidsPage() {
     fetchBids();
   }, [company?.company_id]);
 
-  const handleAction = async (bidId: string, action: "ACCEPTED" | "REJECTED") => {
+  const handleAction = async (bid: any, action: "ACCEPTED" | "REJECTED") => {
+    if (!company?.company_id) return;
+    setActionLoading(true);
     try {
       const supabase = createClient();
+
+      // 1. Update bid status in database
       const { error } = await supabase
         .from("bids")
-        .update({ bid_status: action })
-        .eq("bid_id", bidId);
+        .update({ status: action, updated_at: new Date().toISOString() })
+        .eq("bid_id", bid.bid_id);
 
       if (error) {
         toast.error(`Failed to update bid: ${error.message}`);
         return;
       }
 
+      // 2. If accepted, automatically create a binding contract
+      if (action === "ACCEPTED") {
+        const qty = Number(bid.quantity || 100);
+        const price = Number(bid.amount || 4000);
+
+        await supabase.from("contracts").insert({
+          supply_id: bid.supply_id,
+          buyer_id: bid.bidder_id,
+          seller_id: company.company_id,
+          quantity: qty,
+          unit_price: price,
+          total_value: qty * price,
+          contract_type: bid.bid_type === "LONG_TERM_CONTRACT" ? "LONG_TERM" : "SPOT",
+          start_date: new Date().toISOString().split("T")[0],
+          end_date: new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
+          status: "ACTIVE",
+        });
+
+        // 3. Notify Buyer of acceptance
+        await createNotification({
+          recipient_id: bid.bidder_id,
+          sender_id: company.company_id,
+          title: "Bid Approved! Contract Created",
+          message: `${company.name} accepted your offer of ₹${price.toLocaleString()}/t for ${qty} tons of CO₂. The contract is now active!`,
+          type: "BID_ACCEPTED",
+          reference_id: bid.bid_id,
+          reference_type: "bid",
+        });
+
+        toast.success("Bid accepted! Contract generated and buyer notified.");
+      } else {
+        // Notify Buyer of decline
+        await createNotification({
+          recipient_id: bid.bidder_id,
+          sender_id: company.company_id,
+          title: "Bid Declined",
+          message: `${company.name} declined your offer of ₹${Number(bid.amount).toLocaleString()}/t for ${bid.quantity} tons.`,
+          type: "BID_REJECTED",
+          reference_id: bid.bid_id,
+          reference_type: "bid",
+        });
+
+        toast.info("Bid declined and buyer notified.");
+      }
+
       setBids((prev) =>
-        prev.map((b) => (b.bid_id === bidId ? { ...b, bid_status: action } : b))
+        prev.map((b) => (b.bid_id === bid.bid_id ? { ...b, status: action } : b))
       );
-      toast.success(`Bid has been ${action.toLowerCase()}!`);
     } catch (err: any) {
       toast.error(err.message);
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleCounter = async () => {
-    if (!activeBid || !counterPrice) return;
+    if (!activeBid || !counterPrice || !company?.company_id) return;
     try {
       const supabase = createClient();
       const { error } = await supabase
         .from("bids")
         .update({
-          bid_status: "COUNTERED",
-          offered_price: Number(counterPrice),
+          status: "COUNTERED",
+          amount: Number(counterPrice),
+          updated_at: new Date().toISOString(),
         })
         .eq("bid_id", activeBid.bid_id);
 
@@ -85,10 +151,21 @@ export default function BidsPage() {
         return;
       }
 
+      // Notify the bidder of counter-offer
+      await createNotification({
+        recipient_id: activeBid.bidder_id,
+        sender_id: company.company_id,
+        title: "Counter Offer Received",
+        message: `${company.name} submitted a counter offer of ₹${Number(counterPrice).toLocaleString()}/t for your bid.`,
+        type: "BID_COUNTERED",
+        reference_id: activeBid.bid_id,
+        reference_type: "bid",
+      });
+
       setBids((prev) =>
         prev.map((b) =>
           b.bid_id === activeBid.bid_id
-            ? { ...b, bid_status: "COUNTERED", offered_price: Number(counterPrice) }
+            ? { ...b, status: "COUNTERED", amount: Number(counterPrice) }
             : b
         )
       );
@@ -113,15 +190,167 @@ export default function BidsPage() {
     );
   }
 
-  const pendingCount = bids.filter((b) => b.bid_status === "PENDING").length;
-  const acceptedCount = bids.filter((b) => b.bid_status === "ACCEPTED").length;
-  const counteredCount = bids.filter((b) => b.bid_status === "COUNTERED").length;
+  const incomingBids = bids.filter((b) => b.supply?.emitter_id === company?.company_id);
+  const outgoingBids = bids.filter((b) => b.bidder_id === company?.company_id);
+
+  const pendingCount = bids.filter((b) => b.status === "PENDING").length;
+  const acceptedCount = bids.filter((b) => b.status === "ACCEPTED").length;
+  const counteredCount = bids.filter((b) => b.status === "COUNTERED").length;
+
+  const renderBidCard = (b: any) => {
+    const isIncoming = b.supply?.emitter_id === company?.company_id;
+    const partnerName = isIncoming
+      ? b.bidder?.name || "Industrial Buyer"
+      : b.supply?.emitter?.name || b.supply?.source_industry || "CO₂ Emitter";
+
+    return (
+      <Card key={b.bid_id} className="hover:border-primary/50 transition-colors">
+        <CardContent className="py-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1.5 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-base">{partnerName}</span>
+                <Badge variant="outline" className="text-xs">
+                  {isIncoming ? "INCOMING FROM BUYER" : "OUTGOING OFFER"}
+                </Badge>
+                <Badge
+                  className={
+                    b.bid_type === "BUY_NOW"
+                      ? "bg-purple-600 text-white"
+                      : b.bid_type === "REQUEST_QUOTE"
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-700 text-white"
+                  }
+                >
+                  {b.bid_type?.replace("_", " ") || "BID"}
+                </Badge>
+                <Badge
+                  variant={
+                    b.status === "ACCEPTED"
+                      ? "default"
+                      : b.status === "REJECTED"
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className={
+                    b.status === "ACCEPTED"
+                      ? "bg-emerald-600 text-white hover:bg-emerald-600"
+                      : ""
+                  }
+                >
+                  {b.status}
+                </Badge>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <span>
+                  Quantity: <strong className="text-foreground">{b.quantity} tons</strong>
+                </span>
+                <span>
+                  Offered Price:{" "}
+                  <strong className="text-foreground">₹{Number(b.amount).toLocaleString()}/t</strong>
+                </span>
+                {b.supply?.asking_price && (
+                  <span>
+                    Asking:{" "}
+                    <span className="line-through">
+                      ₹{Number(b.supply.asking_price).toLocaleString()}/t
+                    </span>
+                  </span>
+                )}
+                <span>
+                  Total:{" "}
+                  <strong className="text-primary font-medium">
+                    ₹{(Number(b.amount) * Number(b.quantity)).toLocaleString()}
+                  </strong>
+                </span>
+                <span>Date: {new Date(b.created_at).toLocaleDateString()}</span>
+              </div>
+
+              {b.notes && (
+                <p className="text-xs text-muted-foreground italic">"{b.notes}"</p>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            {b.status === "PENDING" && isIncoming && (
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => handleAction(b, "ACCEPTED")}
+                  disabled={actionLoading}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Accept
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-rose-600 hover:text-rose-700"
+                  onClick={() => handleAction(b, "REJECTED")}
+                  disabled={actionLoading}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Decline
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setActiveBid(b);
+                        setCounterPrice(b.amount?.toString() || "");
+                      }}
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-1" />
+                      Counter
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Counter Offer to {partnerName}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-3">
+                      <p className="text-sm text-muted-foreground">
+                        Original bid was ₹{b.amount}/ton for {b.quantity} tons. Enter your revised price per ton:
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">₹</span>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 4300"
+                          value={counterPrice}
+                          onChange={(e) => setCounterPrice(e.target.value)}
+                        />
+                        <span className="text-sm text-muted-foreground">/ton</span>
+                      </div>
+                      <Button onClick={handleCounter} className="w-full">
+                        Submit Counter Offer
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+
+            {b.status === "ACCEPTED" && (
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/dashboard/contracts">View Contract</Link>
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl text-foreground">Bids & Dynamic Negotiations</h1>
+          <h1 className="font-bold text-2xl text-foreground">Bids & Trade Negotiations</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Manage incoming purchase offers, counter-negotiations, and dynamic pricing agreements.
           </p>
@@ -164,120 +393,45 @@ export default function BidsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {bids.map((b) => {
-            const isIncoming = b.supply?.emitter_id === company?.company_id;
-            const partnerName = isIncoming
-              ? b.buyer?.name || "Industrial Buyer"
-              : b.supply?.companies?.name || "CO₂ Emitter";
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Bids ({bids.length})</TabsTrigger>
+            <TabsTrigger value="incoming">
+              Incoming ({incomingBids.length})
+            </TabsTrigger>
+            <TabsTrigger value="outgoing">
+              Outgoing ({outgoingBids.length})
+            </TabsTrigger>
+          </TabsList>
 
-            return (
-              <Card key={b.bid_id} className="hover:border-primary/50 transition-colors">
-                <CardContent className="py-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-base">{partnerName}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {isIncoming ? "INCOMING" : "OUTGOING"}
-                        </Badge>
-                        <Badge
-                          className={
-                            b.bid_type === "BUY_NOW"
-                              ? "bg-purple-600 text-white"
-                              : b.bid_type === "NEGOTIATE"
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-700 text-white"
-                          }
-                        >
-                          {b.bid_type?.replace("_", " ") || "BID"}
-                        </Badge>
-                        <Badge
-                          variant={
-                            b.bid_status === "ACCEPTED"
-                              ? "default"
-                              : b.bid_status === "REJECTED"
-                              ? "destructive"
-                              : "outline"
-                          }
-                        >
-                          {b.bid_status}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <span>Quantity: <strong className="text-foreground">{b.offered_quantity} tons</strong></span>
-                        <span>Offered Price: <strong className="text-foreground">₹{Number(b.offered_price).toLocaleString()}/t</strong></span>
-                        {b.supply?.asking_price && (
-                          <span>Asking: <span className="line-through">₹{Number(b.supply.asking_price).toLocaleString()}/t</span></span>
-                        )}
-                        <span>Date: {new Date(b.created_at).toLocaleDateString()}</span>
-                      </div>
-                      {b.notes && (
-                        <p className="text-xs text-muted-foreground italic">"{b.notes}"</p>
-                      )}
-                    </div>
+          <TabsContent value="all" className="space-y-4">
+            {bids.map(renderBidCard)}
+          </TabsContent>
 
-                    {b.bid_status === "PENDING" && isIncoming && (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleAction(b.bid_id, "ACCEPTED")}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Accept
-                        </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setActiveBid(b);
-                                setCounterPrice(b.offered_price?.toString() || "");
-                              }}
-                            >
-                              <ArrowRightLeft className="h-4 w-4 mr-1" />
-                              Counter
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Counter Offer to {partnerName}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 py-3">
-                              <p className="text-sm text-muted-foreground">
-                                Current bid: ₹{b.offered_price}/t. Enter your counter-proposal:
-                              </p>
-                              <Input
-                                type="number"
-                                value={counterPrice}
-                                onChange={(e) => setCounterPrice(e.target.value)}
-                                placeholder="Price in INR/ton"
-                              />
-                              <Button className="w-full" onClick={handleCounter}>
-                                Submit Counter Offer
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleAction(b.bid_id, "REJECTED")}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+          <TabsContent value="incoming" className="space-y-4">
+            {incomingBids.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No incoming bids from buyers yet.
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+            ) : (
+              incomingBids.map(renderBidCard)
+            )}
+          </TabsContent>
+
+          <TabsContent value="outgoing" className="space-y-4">
+            {outgoingBids.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  You haven't placed any outgoing bids yet.
+                </CardContent>
+              </Card>
+            ) : (
+              outgoingBids.map(renderBidCard)
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

@@ -22,11 +22,11 @@ export default function ContractsPage() {
         const supabase = createClient();
         let query = supabase
           .from("contracts")
-          .select("*, seller:supplier_id(name), buyer:buyer_id(name)")
+          .select("*, seller:companies!seller_id(name), buyer:companies!buyer_id(name)")
           .order("created_at", { ascending: false });
 
         if (company?.company_id) {
-          query = query.or(`supplier_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`);
+          query = query.or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`);
         }
 
         const { data, error } = await query;
@@ -63,7 +63,7 @@ export default function ContractsPage() {
   }
 
   const totalVal = contracts.reduce(
-    (sum, c) => sum + (parseFloat(c.total_quantity) || 0) * (parseFloat(c.unit_price) || 0),
+    (sum, c) => sum + (parseFloat(c.quantity || c.total_quantity) || 0) * (parseFloat(c.unit_price) || 0),
     0
   );
   const activeCount = contracts.filter((c) => c.status === "ACTIVE").length;
@@ -133,7 +133,9 @@ export default function ContractsPage() {
       ) : (
         <div className="space-y-4">
           {contracts.map((c) => {
-            const val = (parseFloat(c.total_quantity) || 0) * (parseFloat(c.unit_price) || 0);
+            const qty = parseFloat(c.quantity || c.total_quantity) || 0;
+            const price = parseFloat(c.unit_price) || 0;
+            const val = qty * price;
 
             return (
               <Card key={c.contract_id} className="hover:border-primary/50 transition-colors">
@@ -174,7 +176,7 @@ export default function ContractsPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Volume & Price</p>
-                      <p className="font-medium">{c.total_quantity} tons @ ₹{c.unit_price}/t</p>
+                      <p className="font-medium">{qty} tons @ ₹{price}/t</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Payment Terms</p>

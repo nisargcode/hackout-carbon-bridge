@@ -43,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
+import { createNotification } from "@/lib/notifications";
 import type { CO2Supply } from "@/types";
 
 interface EnrichedSupply extends CO2Supply {
@@ -205,19 +206,47 @@ export default function MarketplacePage() {
 
     setSubmittingBid(true);
     try {
-      const { error } = await supabase.from("bids").insert({
-        supply_id: selectedSupply.supply_id,
-        bidder_id: company.company_id,
-        amount: price,
-        quantity: qty,
-        bid_type: bidType,
-        status: "PENDING",
-        notes: bidNotes.trim() || `Offer from ${company.name || "Buyer"}`,
-      });
+      const { data: insertedBid, error } = await supabase
+        .from("bids")
+        .insert({
+          supply_id: selectedSupply.supply_id,
+          bidder_id: company.company_id,
+          amount: price,
+          quantity: qty,
+          bid_type: bidType,
+          status: "PENDING",
+          notes: bidNotes.trim() || `Offer from ${company.name || "Buyer"}`,
+        })
+        .select()
+        .single();
 
       if (error) {
         toast.error(`Bid submission failed: ${error.message}`);
       } else {
+        // Trigger notification for the emitter / seller
+        if (selectedSupply.emitter_id) {
+          await createNotification({
+            recipient_id: selectedSupply.emitter_id,
+            sender_id: company.company_id,
+            title: `New Purchase Offer: ₹${price.toLocaleString()}/t`,
+            message: `${company.name || "A buyer"} submitted an offer to purchase ${qty} ${selectedSupply.quantity_unit} of ${selectedSupply.source_industry || "CO₂"} at ₹${price.toLocaleString()}/t.`,
+            type: "BID_RECEIVED",
+            reference_id: insertedBid?.bid_id,
+            reference_type: "bid",
+            metadata: {
+              bid_id: insertedBid?.bid_id,
+              supply_id: selectedSupply.supply_id,
+              amount: price,
+              quantity: qty,
+              partner_name: company.name,
+              industry: selectedSupply.source_industry,
+              location: company.location || selectedSupply.location,
+              notes: bidNotes.trim(),
+              status: "PENDING",
+            },
+          });
+        }
+
         toast.success(
           bidType === "BUY_NOW"
             ? "Buy-Now order request submitted successfully!"

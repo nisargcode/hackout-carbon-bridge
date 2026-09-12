@@ -20,9 +20,10 @@ import {
   type LucideIcon,
   Forklift,
   ChartBar,
+  Bell,
 } from "lucide-react";
 
-export type NavBadge = "new" | "soon";
+export type NavBadge = "new" | "soon" | number | string;
 
 export interface NavSubItem {
   id: string;
@@ -71,6 +72,12 @@ export const emitterSidebarItems: NavGroup[] = [
         title: "Dashboard",
         url: "/dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        id: "notifications",
+        title: "Notifications",
+        url: "/dashboard/notifications",
+        icon: Bell,
       },
     ],
   },
@@ -171,6 +178,12 @@ export const buyerSidebarItems: NavGroup[] = [
         title: "Dashboard",
         url: "/dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        id: "notifications",
+        title: "Notifications",
+        url: "/dashboard/notifications",
+        icon: Bell,
       },
     ],
   },
@@ -273,6 +286,12 @@ export const logisticsSidebarItems: NavGroup[] = [
         url: "/dashboard",
         icon: LayoutDashboard,
       },
+      {
+        id: "notifications",
+        title: "Notifications",
+        url: "/dashboard/notifications",
+        icon: Bell,
+      },
     ],
   },
   {
@@ -348,6 +367,12 @@ export const regulatorSidebarItems: NavGroup[] = [
         title: "Dashboard",
         url: "/dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        id: "notifications",
+        title: "Notifications",
+        url: "/dashboard/notifications",
+        icon: Bell,
       },
     ],
   },

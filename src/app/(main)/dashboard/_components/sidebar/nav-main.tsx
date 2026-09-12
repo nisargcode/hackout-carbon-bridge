@@ -300,13 +300,17 @@ function NavItemBadge({ badge }: { badge?: NavBadge }) {
     return null;
   }
 
+  const isNumeric = typeof badge === "number" || (!Number.isNaN(Number(badge)) && badge !== "new" && badge !== "soon");
+
   return (
     <SidebarMenuBadge
       className={cn(
-        "rounded-sm border capitalize",
+        "rounded-sm border capitalize text-[11px] font-semibold",
         badge === "new" &&
           "border-green-600 text-green-600 peer-hover/menu-button:text-green-600 peer-data-active/menu-button:text-green-600",
         badge === "soon" && "border-muted-foreground text-muted-foreground",
+        isNumeric &&
+          "bg-emerald-600 text-white border-transparent px-1.5 py-0.5 rounded-full min-w-5 text-center flex items-center justify-center shadow-xs",
       )}
     >
       {badge}
