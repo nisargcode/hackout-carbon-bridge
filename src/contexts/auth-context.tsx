@@ -23,6 +23,7 @@ interface AuthContextValue {
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshCompany: () => Promise<void>;
+  switchRole: (newRole: CompanyType) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -164,6 +165,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCompany(null);
   };
 
+  const switchRole = async (newRole: CompanyType) => {
+    try {
+      // 1. Instant local state update for snappy UI response
+      if (company) {
+        setCompany({ ...company, company_type: newRole });
+      }
+
+      // 2. Persist to Supabase database if company record exists
+      if (company?.company_id) {
+        const { error } = await supabase
+          .from("companies")
+          .update({ company_type: newRole })
+          .eq("company_id", company.company_id);
+
+        if (error) {
+          console.error("Failed to update role in Supabase:", error);
+          return { error: error.message };
+        }
+      }
+
+      // 3. Update auth user metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { company_type: newRole },
+        });
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -177,6 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         refreshCompany,
+        switchRole,
       }}
     >
       {children}

@@ -12,6 +12,7 @@ import { getPreference } from "@/server/server-actions";
 import { AccountSwitcher } from "./_components/header/account-switcher";
 import { GitHubRepositoriesMenu } from "./_components/header/github-repositories-menu";
 import { LayoutControls } from "./_components/header/layout-controls";
+import { RoleSwitcher } from "./_components/header/role-switcher";
 import { SearchDialog } from "./_components/header/search-dialog";
 import { ThemeSwitcher } from "./_components/header/theme-switcher";
 
@@ -60,6 +61,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
+              <RoleSwitcher />
               <LayoutControls />
               <ThemeSwitcher />
               <GitHubRepositoriesMenu />

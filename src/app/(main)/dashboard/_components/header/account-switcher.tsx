@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, Building2, UserCircle } from "lucide-react";
+import { LogOut, Settings, Building2, UserCircle, Factory, ShoppingBag, Check } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,9 +15,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { toast } from "sonner";
 
 export function AccountSwitcher() {
-  const { user, company, companyType, signOut } = useAuth();
+  const { user, company, companyType, signOut, switchRole } = useAuth();
   const router = useRouter();
 
   const displayName = company?.name || user?.email?.split("@")[0] || "Guest User";
@@ -55,6 +56,38 @@ export function AccountSwitcher() {
             <p className="text-xs text-muted-foreground truncate">{email}</p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2">
+            Active Mode
+          </DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={async () => {
+              await switchRole("EMITTER");
+              toast.success("Switched to Seller (CO₂ Emitter) mode!");
+            }}
+            className="cursor-pointer flex items-center justify-between"
+          >
+            <span className="flex items-center gap-2">
+              <Factory className="h-4 w-4 text-emerald-600" />
+              Seller Mode (Emitter)
+            </span>
+            {companyType === "EMITTER" && <Check className="h-4 w-4 text-primary" />}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={async () => {
+              await switchRole("CO2_BUYER");
+              toast.success("Switched to Buyer (CO₂ Offtaker) mode!");
+            }}
+            className="cursor-pointer flex items-center justify-between"
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4 text-blue-600" />
+              Buyer Mode (Offtaker)
+            </span>
+            {companyType === "CO2_BUYER" && <Check className="h-4 w-4 text-primary" />}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="cursor-pointer">
