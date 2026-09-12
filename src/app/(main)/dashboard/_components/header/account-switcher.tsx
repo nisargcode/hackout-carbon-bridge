@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { LogOut, Settings, Building2, UserCircle, Factory, ShoppingBag, Check } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,11 @@ export function AccountSwitcher() {
   const displayName = company?.name || user?.email?.split("@")[0] || "Guest User";
   const email = user?.email || company?.contact_details?.email as string || "Not signed in";
   const role = companyType || "MEMBER";
+  const avatarUrl =
+    (company?.contact_details?.avatar_url as string) ||
+    (user?.user_metadata?.avatar_url as string) ||
+    (user?.user_metadata?.picture as string) ||
+    "";
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,6 +43,7 @@ export function AccountSwitcher() {
           className="flex items-center gap-2 rounded-lg p-1 text-left transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <Avatar className="size-8 rounded-lg">
+            <AvatarImage src={avatarUrl || undefined} alt={displayName} />
             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
               {getInitials(displayName)}
             </AvatarFallback>

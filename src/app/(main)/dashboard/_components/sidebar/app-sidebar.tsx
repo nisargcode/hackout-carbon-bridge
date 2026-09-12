@@ -105,7 +105,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const currentUser = {
     name: company?.name ?? user?.email ?? "User",
     email: user?.email ?? "",
-    avatar: "",
+    avatar:
+      (company?.contact_details?.avatar_url as string) ||
+      (user?.user_metadata?.avatar_url as string) ||
+      (user?.user_metadata?.picture as string) ||
+      "",
   };
 
   const handleSignOut = async () => {
