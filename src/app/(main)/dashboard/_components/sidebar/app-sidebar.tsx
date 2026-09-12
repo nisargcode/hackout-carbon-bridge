@@ -20,8 +20,6 @@ import { useAuth } from "@/contexts/auth-context";
 import {
   emitterSidebarItems,
   buyerSidebarItems,
-  logisticsSidebarItems,
-  regulatorSidebarItems,
   type NavGroup,
 } from "@/navigation/sidebar/sidebar-items";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
@@ -39,11 +37,6 @@ function getRoleNav(companyType: string | null): NavGroup[] {
       return emitterSidebarItems;
     case "CO2_BUYER":
       return buyerSidebarItems;
-    case "LOGISTICS_PROVIDER":
-      return logisticsSidebarItems;
-    case "REGULATOR":
-    case "ADMIN":
-      return regulatorSidebarItems;
     default:
       return emitterSidebarItems;
   }

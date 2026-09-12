@@ -12,15 +12,11 @@ import matchesRoutes from './routes/matches';
 import bidsRoutes from './routes/bids';
 import ordersRoutes from './routes/orders';
 import contractsRoutes from './routes/contracts';
-import logisticsRoutes from './routes/logistics';
-import routesRoutes from './routes/routes';
-import shipmentsRoutes from './routes/shipments';
 import verificationRoutes from './routes/verification';
 import carbonTrackingRoutes from './routes/carbonTracking';
 import certificatesRoutes from './routes/certificates';
 import analyticsRoutes from './routes/analytics';
 import aiRoutes from './routes/ai';
-import regulatorRoutes from './routes/regulator';
 
 dotenv.config();
 
@@ -49,9 +45,6 @@ app.use('/api/matches', matchesRoutes);
 app.use('/api/bids', bidsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/contracts', contractsRoutes);
-app.use('/api/logistics', logisticsRoutes);
-app.use('/api/routes', routesRoutes);
-app.use('/api/shipments', shipmentsRoutes);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/carbon-tracking', carbonTrackingRoutes);
 app.use('/api/certificates', certificatesRoutes);

@@ -15,22 +15,6 @@ export const users = [
     avatar: "",
     role: "CO2_BUYER",
   },
-  {
-    id: "3",
-    name: "CryoTrans Logistics (Carrier)",
-    username: "cryotrans",
-    email: "logistics@carbonbridge.org",
-    avatar: "",
-    role: "LOGISTICS_PROVIDER",
-  },
-  {
-    id: "4",
-    name: "National Carbon Authority (Regulator)",
-    username: "carbonreg",
-    email: "regulator@carbonbridge.org",
-    avatar: "",
-    role: "REGULATOR",
-  },
 ];
 
 export const rootUser = users[0];

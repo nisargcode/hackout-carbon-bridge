@@ -1,5 +1,4 @@
-export type CompanyType = "EMITTER" | "CO2_BUYER" | "LOGISTICS_PROVIDER" | "REGULATOR" | "ADMIN";
-export type ShipmentStatus = "MATCHED" | "BOOKED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED" | "VERIFIED";
+export type CompanyType = "EMITTER" | "CO2_BUYER" | "REGULATOR" | "ADMIN";
 export type BidType = "BUY_NOW" | "REQUEST_QUOTE" | "BID" | "NEGOTIATE" | "LONG_TERM_CONTRACT";
 export type SupplyStatus = "ACTIVE" | "INACTIVE" | "SOLD_OUT" | "PENDING_VERIFICATION";
 export type DemandStatus = "OPEN" | "MATCHED" | "FULFILLED" | "CANCELLED";
@@ -91,24 +90,6 @@ export interface Contract {
   end_date: string;
   status: ContractStatus;
   created_at: string;
-}
-
-export interface Shipment {
-  shipment_id: string;
-  supplier_id: string;
-  buyer_id: string;
-  logistics_provider: string | null;
-  quantity: number;
-  pickup_location: string;
-  destination: string;
-  route: Record<string, unknown>;
-  estimated_distance: number;
-  transportation_cost: number;
-  estimated_delivery: string;
-  status: ShipmentStatus;
-  created_at: string;
-  supplier?: Company;
-  buyer?: Company;
 }
 
 export interface Certificate {

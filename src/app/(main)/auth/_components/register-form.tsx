@@ -25,7 +25,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Company name is required"),
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  company_type: z.enum(["EMITTER", "CO2_BUYER", "LOGISTICS_PROVIDER", "REGULATOR"]),
+  company_type: z.enum(["EMITTER", "CO2_BUYER"]),
   industry: z.string().min(2, "Industry is required"),
   location: z.string().min(2, "Location is required"),
 });
@@ -145,8 +145,6 @@ export function RegisterForm() {
                 <SelectContent className="rounded-xl border-2 border-slate-200">
                   <SelectItem value="EMITTER" className="text-xs">🏭 CO₂ Emitter / Seller</SelectItem>
                   <SelectItem value="CO2_BUYER" className="text-xs">⚡ CO₂ Buyer / Offtaker</SelectItem>
-                  <SelectItem value="LOGISTICS_PROVIDER" className="text-xs">🚛 Logistics Provider</SelectItem>
-                  <SelectItem value="REGULATOR" className="text-xs">⚖️ Regulator / Auditor</SelectItem>
                 </SelectContent>
               </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
