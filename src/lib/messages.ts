@@ -154,12 +154,48 @@ export async function fetchTradingPartners(): Promise<
 > {
   const supabase = createClient();
   const fallback = [
-    { id: "11111111-1111-1111-1111-111111111111", name: "ABC Cement Works", email: "sales@abccement.com", industry: "Cement", type: "EMITTER" },
-    { id: "22222222-2222-2222-2222-222222222222", name: "Tata Steel Jamshedpur", email: "carbon@tatasteel.com", industry: "Steel", type: "EMITTER" },
-    { id: "33333333-3333-3333-3333-333333333333", name: "CleanFuel Synthesis Ltd", email: "procurement@cleanfuel.in", industry: "Synthetic Fuels", type: "CO2_BUYER" },
-    { id: "44444444-4444-4444-4444-444444444444", name: "GreenGrow AgriTech", email: "supply@greengrow.org", industry: "Agriculture", type: "CO2_BUYER" },
-    { id: "55555555-5555-5555-5555-555555555555", name: "CryoTrans Logistics", email: "dispatch@cryotrans.in", industry: "Cryogenic Freight", type: "LOGISTICS_PROVIDER" },
-    { id: "66666666-6666-6666-6666-666666666666", name: "National Carbon Authority", email: "oversight@carbonreg.gov.in", industry: "Regulator", type: "REGULATOR" },
+    {
+      id: "11111111-1111-1111-1111-111111111111",
+      name: "ABC Cement Works",
+      email: "sales@abccement.com",
+      industry: "Cement",
+      type: "EMITTER",
+    },
+    {
+      id: "22222222-2222-2222-2222-222222222222",
+      name: "Tata Steel Jamshedpur",
+      email: "carbon@tatasteel.com",
+      industry: "Steel",
+      type: "EMITTER",
+    },
+    {
+      id: "33333333-3333-3333-3333-333333333333",
+      name: "CleanFuel Synthesis Ltd",
+      email: "procurement@cleanfuel.in",
+      industry: "Synthetic Fuels",
+      type: "CO2_BUYER",
+    },
+    {
+      id: "44444444-4444-4444-4444-444444444444",
+      name: "GreenGrow AgriTech",
+      email: "supply@greengrow.org",
+      industry: "Agriculture",
+      type: "CO2_BUYER",
+    },
+    {
+      id: "55555555-5555-5555-5555-555555555555",
+      name: "CryoTrans Logistics",
+      email: "dispatch@cryotrans.in",
+      industry: "Cryogenic Freight",
+      type: "LOGISTICS_PROVIDER",
+    },
+    {
+      id: "66666666-6666-6666-6666-666666666666",
+      name: "National Carbon Authority",
+      email: "oversight@carbonreg.gov.in",
+      industry: "Regulator",
+      type: "REGULATOR",
+    },
   ];
 
   try {
@@ -205,12 +241,12 @@ export async function fetchUserMessages(userEmail: string, userName: string, com
     let query = supabase.from("messages").select("*").order("created_at", { ascending: false });
     const orFilters: string[] = [];
     if (companyId) {
-      orFilters.push(`recipient_id.eq.${companyId}`);
-      orFilters.push(`sender_id.eq.${companyId}`);
+      orFilters.push(`and(recipient_id.eq.${companyId},folder.eq.inbox)`);
+      orFilters.push(`and(sender_id.eq.${companyId},folder.eq.sent)`);
     }
     if (userEmail) {
-      orFilters.push(`recipient_email.eq.${userEmail}`);
-      orFilters.push(`sender_email.eq.${userEmail}`);
+      orFilters.push(`and(recipient_email.eq.${userEmail},folder.eq.inbox)`);
+      orFilters.push(`and(sender_email.eq.${userEmail},folder.eq.sent)`);
     }
     orFilters.push("recipient_email.eq.marketplace@carbonbridge.io");
     if (orFilters.length > 0) {
@@ -254,11 +290,13 @@ export async function fetchUserMessages(userEmail: string, userName: string, com
 
 export async function sendUserMessage(payload: SendMessagePayload): Promise<Mail> {
   const supabase = createClient();
-  const messageId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `msg-${Date.now()}`;
   const now = new Date().toISOString();
 
+  // Create a temporary ID for local state until we get the real one from DB
+  const tempId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `msg-${Date.now()}`;
+
   const newMail: Mail = {
-    id: messageId,
+    id: tempId,
     accountId: 1,
     from: { name: payload.senderName, email: payload.senderEmail },
     to: [{ name: payload.recipientName, email: payload.recipientEmail }],
@@ -285,49 +323,65 @@ export async function sendUserMessage(payload: SendMessagePayload): Promise<Mail
 
   // Insert recipient's copy (inbox) into DB
   try {
-    await supabase.from("messages").insert({
-      message_id: messageId,
-      sender_id: payload.senderId || null,
-      sender_name: payload.senderName,
-      sender_email: payload.senderEmail,
-      recipient_id: payload.recipientId || null,
-      recipient_name: payload.recipientName,
-      recipient_email: payload.recipientEmail,
-      subject: payload.subject,
-      body: payload.body,
-      folder: "inbox",
-      is_read: false,
-      is_pinned: false,
-      is_priority: Boolean(payload.isPriority),
-      labels: payload.labels || ["trade"],
-      created_at: now,
-    });
+    const { data: inboxData, error: inboxError } = await supabase
+      .from("messages")
+      .insert({
+        sender_id: payload.senderId || null,
+        sender_name: payload.senderName,
+        sender_email: payload.senderEmail,
+        recipient_id: payload.recipientId || null,
+        recipient_name: payload.recipientName,
+        recipient_email: payload.recipientEmail,
+        subject: payload.subject,
+        body: payload.body,
+        folder: "inbox",
+        is_read: false,
+        is_pinned: false,
+        is_priority: Boolean(payload.isPriority),
+        labels: payload.labels || ["trade"],
+        created_at: now,
+      })
+      .select("message_id")
+      .single();
+
+    if (inboxError) console.warn("Supabase message insert error (recipient):", inboxError);
+    // If this was to ourselves, update the local ID
+    if (payload.recipientId === payload.senderId && inboxData) {
+      newMail.id = inboxData.message_id;
+    }
   } catch (err) {
-    console.warn("Supabase message insert error (recipient):", err);
+    console.warn("Supabase message insert exception (recipient):", err);
   }
 
   // Insert sender's copy (sent folder) into DB
   try {
-    const sentId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `sent-${Date.now()}`;
-    await supabase.from("messages").insert({
-      message_id: sentId,
-      sender_id: payload.senderId || null,
-      sender_name: payload.senderName,
-      sender_email: payload.senderEmail,
-      recipient_id: payload.recipientId || null,
-      recipient_name: payload.recipientName,
-      recipient_email: payload.recipientEmail,
-      subject: payload.subject,
-      body: payload.body,
-      folder: "sent",
-      is_read: true,
-      is_pinned: false,
-      is_priority: Boolean(payload.isPriority),
-      labels: payload.labels || ["trade", "sent"],
-      created_at: now,
-    });
+    const { data: sentData, error: sentError } = await supabase
+      .from("messages")
+      .insert({
+        sender_id: payload.senderId || null,
+        sender_name: payload.senderName,
+        sender_email: payload.senderEmail,
+        recipient_id: payload.recipientId || null,
+        recipient_name: payload.recipientName,
+        recipient_email: payload.recipientEmail,
+        subject: payload.subject,
+        body: payload.body,
+        folder: "sent",
+        is_read: true,
+        is_pinned: false,
+        is_priority: Boolean(payload.isPriority),
+        labels: payload.labels || ["trade", "sent"],
+        created_at: now,
+      })
+      .select("message_id")
+      .single();
+
+    if (sentError) console.warn("Supabase message insert error (sender):", sentError);
+    if (sentData) {
+      newMail.id = sentData.message_id;
+    }
   } catch (err) {
-    console.warn("Supabase message insert error (sender):", err);
+    console.warn("Supabase message insert exception (sender):", err);
   }
 
   if (payload.recipientId) {
@@ -349,10 +403,7 @@ export async function sendUserMessage(payload: SendMessagePayload): Promise<Mail
   return newMail;
 }
 
-export async function updateMailState(
-  mailId: string,
-  updates: Partial<Pick<Mail, "isRead" | "isPinned" | "folder">>
-) {
+export async function updateMailState(mailId: string, updates: Partial<Pick<Mail, "isRead" | "isPinned" | "folder">>) {
   if (typeof window !== "undefined") {
     try {
       const stored = localStorage.getItem(LOCAL_MESSAGES_KEY);

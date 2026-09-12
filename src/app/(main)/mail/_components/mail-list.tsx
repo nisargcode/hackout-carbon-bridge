@@ -55,7 +55,11 @@ export function MailList({ groups, onSelectMail }: MailListProps) {
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className="size-9 after:rounded-sm">
-                      <AvatarFallback className="rounded-sm bg-background">{item.from.name[0]}</AvatarFallback>
+                      <AvatarFallback className="rounded-sm bg-background">
+                        {item.folder === "sent" && item.to && item.to.length > 0
+                          ? item.to[0].name[0]
+                          : item.from.name[0]}
+                      </AvatarFallback>
                     </Avatar>
 
                     <div className="space-y-2">
@@ -67,7 +71,12 @@ export function MailList({ groups, onSelectMail }: MailListProps) {
                               !item.isRead && "font-medium",
                             )}
                           >
-                            {item.from.name} {!item.isRead && <span className="size-2 rounded-full bg-blue-600" />}
+                            {item.folder === "sent" && item.to && item.to.length > 0 ? (
+                              <span>To: {item.to[0].name}</span>
+                            ) : (
+                              <span>{item.from.name}</span>
+                            )}
+                            {!item.isRead && <span className="size-2 rounded-full bg-blue-600" />}
                           </div>
                           <div
                             className={cn(
