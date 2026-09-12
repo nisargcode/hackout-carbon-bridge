@@ -1,76 +1,92 @@
 "use client";
 
-import { addDays, format, set } from "date-fns";
-import { ChevronRight, Zap } from "lucide-react";
-import { siClaude, siLinear, siResend } from "simple-icons";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { ChevronRight, FileText } from "lucide-react";
 
-import { SimpleIcon } from "@/components/simple-icon";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
-
-const transactions = [
-  {
-    id: 1,
-    title: "Claude Pro Subscription",
-    date: format(set(addDays(new Date(), 2), { hours: 14, minutes: 45 }), "hh.mm a '•' MMMM dd, yyyy"),
-    icon: siClaude,
-  },
-  {
-    id: 2,
-    title: "Resend Pro Team",
-    date: format(set(addDays(new Date(), 4), { hours: 7, minutes: 0 }), "hh.mm a '•' MMMM dd, yyyy"),
-    icon: siResend,
-  },
-  {
-    id: 3,
-    title: "Linear Plus Plan",
-    date: format(set(addDays(new Date(), 10), { hours: 7, minutes: 0 }), "hh.mm a '•' MMMM dd, yyyy"),
-    icon: siLinear,
-  },
-];
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/auth-context";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 export function UpcomingTransactions() {
+  const { company } = useAuth();
+  const [contracts, setContracts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!company) return;
+      const supabase = createClient();
+      
+      const { data } = await supabase
+        .from("contracts")
+        .select("*, buyer:companies!buyer_id(name), seller:companies!seller_id(name)")
+        .or(`seller_id.eq.${company.company_id},buyer_id.eq.${company.company_id}`)
+        .eq("status", "ACTIVE")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (data) setContracts(data);
+      setLoading(false);
+    }
+    fetchData();
+  }, [company]);
+
+  if (loading) {
+    return <Skeleton className="h-96 w-full rounded-xl" />;
+  }
+
+  const totalActiveValue = contracts.reduce((sum, c) => sum + Number(c.total_value), 0);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal">Upcoming Bills & Payments</CardTitle>
+        <CardTitle className="font-normal">Active Contracts & Deliveries</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 className="flex items-baseline text-3xl leading-none tracking-tight">
-              <span className="font-normal">$1,245</span>
-              <span className="text-muted-foreground text-xl">.00</span>
+              <span className="font-normal">₹{totalActiveValue.toLocaleString()}</span>
             </h2>
             <p className="text-muted-foreground text-sm leading-none">
-              You have <span className="font-medium text-foreground">3</span> bills due this month
+              Value of <span className="font-medium text-foreground">{contracts.length}</span> recently active contracts
             </p>
-          </div>
-          <div className="flex w-max items-center gap-2 rounded-md border border-border bg-muted/70 px-2 py-1.5 text-sm">
-            <Zap className="size-4 fill-primary text-primary" />
-            <span className="text-muted-foreground">
-              Autopay will process <span className="font-medium text-foreground">$145.00</span> today
-            </span>
           </div>
         </div>
 
         <ItemGroup>
-          {transactions.map((transaction) => (
-            <Item key={transaction.id} variant="outline" size="xs">
-              <ItemMedia>
-                <div className="grid size-9 place-items-center rounded-md border bg-background">
-                  <SimpleIcon icon={transaction.icon} />
-                </div>
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>{transaction.title}</ItemTitle>
-                <ItemDescription>{transaction.date}</ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <ChevronRight className="size-5 text-muted-foreground" />
-              </ItemActions>
-            </Item>
-          ))}
+          {contracts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No active contracts right now.</p>
+          ) : (
+            contracts.map((c) => (
+              <Link href="/dashboard/contracts" key={c.contract_id}>
+                <Item variant="outline" size="xs" className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <ItemMedia>
+                    <div className="grid size-9 place-items-center rounded-md border bg-background">
+                      <FileText className="size-4 text-muted-foreground" />
+                    </div>
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle>
+                      {c.seller_id === company?.company_id 
+                        ? `Delivery to ${c.buyer?.name}` 
+                        : `Receipt from ${c.seller?.name}`}
+                    </ItemTitle>
+                    <ItemDescription>
+                      ₹{Number(c.total_value).toLocaleString()} · {c.quantity} tons
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <ChevronRight className="size-5 text-muted-foreground" />
+                  </ItemActions>
+                </Item>
+              </Link>
+            ))
+          )}
         </ItemGroup>
       </CardContent>
     </Card>
