@@ -54,7 +54,7 @@ const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(2, "Company name is required"),
-  company_type: z.enum(["EMITTER", "CO2_BUYER", "LOGISTICS_PROVIDER", "REGULATOR"]),
+  company_type: z.enum(["EMITTER", "CO2_BUYER"]),
   industry: z.string().min(2, "Industry is required"),
   location: z.string().min(2, "City / Location is required"),
 });
@@ -376,12 +376,6 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                                 </SelectItem>
                                 <SelectItem value="CO2_BUYER" className="font-medium text-xs py-2.5">
                                   ⚡ CO₂ Buyer / Industrial Offtaker (Fuels, Agri, Chemical)
-                                </SelectItem>
-                                <SelectItem value="LOGISTICS_PROVIDER" className="font-medium text-xs py-2.5">
-                                  🚛 Cryogenic Fleet Carrier & Logistics Provider
-                                </SelectItem>
-                                <SelectItem value="REGULATOR" className="font-medium text-xs py-2.5">
-                                  ⚖️ Environmental Authority & Carbon Auditor
                                 </SelectItem>
                               </SelectContent>
                             </Select>

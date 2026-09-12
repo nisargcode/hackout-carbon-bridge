@@ -7,11 +7,11 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { data: supplies } = await supabase.from('co2_supplies').select('available_quantity');
-    const { data: shipments } = await supabase.from('shipments').select('quantity, status');
+    const { data: contracts } = await supabase.from('contracts').select('total_quantity, status');
 
     const totalCaptured = supplies?.reduce((sum: number, s: any) => sum + (parseFloat(s.available_quantity) || 0), 0) || 0;
-    const deliveredShipments = shipments?.filter((s: any) => s.status === 'DELIVERED' || s.status === 'VERIFIED') || [];
-    const totalRecycled = deliveredShipments.reduce((sum: number, s: any) => sum + (parseFloat(s.quantity) || 0), 0);
+    const deliveredContracts = contracts?.filter((c: any) => c.status === 'COMPLETED') || [];
+    const totalRecycled = deliveredContracts.reduce((sum: number, c: any) => sum + (parseFloat(c.total_quantity) || 0), 0);
     const netAbatement = totalCaptured > 0 ? parseFloat(((totalRecycled / totalCaptured) * 100).toFixed(1)) : 0;
 
     res.json({

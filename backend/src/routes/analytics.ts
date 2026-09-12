@@ -47,7 +47,7 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
       const totalUtilized = contracts?.reduce((sum: number, c: any) => sum + Number(c.total_quantity || 0), 0) || 0;
       const uniqueSuppliers = new Set(contracts?.map((c: any) => c.supplier_id)).size;
       const activeContracts = contracts?.filter((c: any) => c.status === 'ACTIVE').length || 0;
-      const upcoming = shipments?.filter((s: any) => s.status !== 'DELIVERED' && s.status !== 'VERIFIED').length || 0;
+      const upcoming = 0;
 
       const avgCost = contracts && contracts.length > 0
         ? Math.round(contracts.reduce((acc: number, c: any) => acc + Number(c.unit_price || 0), 0) / contracts.length)
@@ -67,44 +67,6 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
       });
       return;
     }
-
-    if (role === 'LOGISTICS_PROVIDER') {
-      const { data: myShipments } = await supabase.from('shipments').select('*').eq('logistics_provider', companyId);
-      const { data: availableShipments } = await supabase.from('shipments').select('*').is('logistics_provider', null);
-
-      const activeRoutes = myShipments?.filter((s: any) => s.status !== 'DELIVERED' && s.status !== 'VERIFIED').length || 0;
-      const completed = myShipments?.filter((s: any) => s.status === 'DELIVERED' || s.status === 'VERIFIED').length || 0;
-      const totalFreight = myShipments?.reduce((sum: number, s: any) => sum + Number(s.transportation_cost || 0), 0) || 0;
-
-      res.json({
-        role,
-        data: {
-          active_routes: activeRoutes,
-          completed_jobs: completed,
-          monthly_revenue: totalFreight > 100000 ? `₹${(totalFreight / 100000).toFixed(1)}L` : `₹${totalFreight.toLocaleString()}`,
-          available_jobs: availableShipments?.length || 0,
-        }
-      });
-      return;
-    }
-
-    // REGULATOR
-    const { count: txCount } = await supabase.from('contracts').select('*', { count: 'exact', head: true });
-    const { count: certCount } = await supabase.from('certificates').select('*', { count: 'exact', head: true });
-    const { data: allShipments } = await supabase.from('shipments').select('quantity, status');
-
-    const totalTracked = allShipments?.reduce((sum: number, s: any) => sum + Number(s.quantity || 0), 0) || 0;
-    const pending = allShipments?.filter((s: any) => s.status !== 'VERIFIED').length || 0;
-
-    res.json({
-      role,
-      data: {
-        total_transactions: txCount || 0,
-        verified_certs: certCount || 0,
-        pending_review: pending,
-        total_co2_tracked: totalTracked,
-      }
-    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

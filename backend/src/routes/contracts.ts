@@ -86,16 +86,6 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
       return;
     }
 
-    // Also automatically create initial shipment record in database for logistics fulfillment!
-    await supabase.from('shipments').insert({
-      contract_id: data.contract_id,
-      supplier_id: seller_id,
-      buyer_id: buyer_id,
-      quantity: Number(quantity),
-      pickup_location: data.supply?.location || 'Origin Terminal',
-      destination: data.buyer?.location || 'Destination Facility',
-      status: 'MATCHED',
-    });
 
     // Deduct contracted quantity from supply
     if (supply_id) {

@@ -12,12 +12,6 @@ router.get('/recommendations', (req: Request, res: Response) => {
         reason: 'Consistently purchases >200 tons/month at 98%+ purity. High solvency rating (96/100).',
         optimalPriceTarget: 4180,
         suggestedTerm: '6-Month Rolling Offtake Agreement',
-      },
-      {
-        partner: 'CryoTrans Logistics',
-        role: 'LOGISTICS_PROVIDER',
-        reason: 'Maintains optimal Euro-VI cryogenic tankers on Mumbai-Pune corridor with 99% on-time delivery.',
-        expectedFreightSavings: '8.5% below corridor average',
       }
     ]
   });

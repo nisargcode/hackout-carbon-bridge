@@ -3,8 +3,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { EmitterDashboard } from "./_components/emitter-dashboard";
 import { BuyerDashboard } from "./_components/buyer-dashboard";
-import { LogisticsDashboard } from "./_components/logistics-dashboard";
-import { RegulatorDashboard } from "./_components/regulator-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
@@ -73,11 +71,6 @@ export default function DashboardPage() {
       return <EmitterDashboard />;
     case "CO2_BUYER":
       return <BuyerDashboard />;
-    case "LOGISTICS_PROVIDER":
-      return <LogisticsDashboard />;
-    case "REGULATOR":
-    case "ADMIN":
-      return <RegulatorDashboard />;
     default:
       return <EmitterDashboard />;
   }

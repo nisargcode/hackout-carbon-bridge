@@ -155,10 +155,7 @@ export default function LandingPage() {
                 <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
                 Real-time Matching
               </div>
-              <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3 py-1.5 rounded-full">
-                <div className="h-2.5 w-2.5 rounded-full bg-orange-600" />
-                Smart Logistics
-              </div>
+
             </div>
           </div>
 
@@ -210,11 +207,7 @@ export default function LandingPage() {
                 title: "Intelligent Matching",
                 desc: "AI-powered matching based on purity, quantity, distance, price, and lab-grade certification.",
               },
-              {
-                icon: "📦",
-                title: "Logistics Management",
-                desc: "Connect with certified cryogenic carriers who bid competitively on secure transport runs.",
-              },
+
               {
                 icon: "📜",
                 title: "Verified Certificates",
@@ -233,7 +226,7 @@ export default function LandingPage() {
               {
                 icon: "📊",
                 title: "Role-Based Dashboards",
-                desc: "Dedicated workspaces engineered for Emitters, Industrial Offtakers, Logistics Providers, and Regulators.",
+                desc: "Dedicated workspaces engineered for CO₂ Emitters and Industrial Offtakers.",
               },
             ].map((f) => (
               <div
