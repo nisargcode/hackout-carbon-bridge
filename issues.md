@@ -1,0 +1,6 @@
+- in add listing and add supply : current date <= available from date < available until
+- similarly wherever there is concepts like date and stuff where there are production concepts like constraints and such , apply those
+- if someone accepts x ton of bid then those x ton must be subtracted from original available volume
+- add counter bidding with correct logic in bids
+- add comment while in bidding
+- after successful bidding, after clicking download legal pdf, nothing downloads. so add dummy pdf with the bid data to download there
