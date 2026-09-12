@@ -131,7 +131,10 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
         }
       }}
     >
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-2 border-emerald-500/30 bg-white/95 backdrop-blur-2xl shadow-2xl shadow-emerald-950/20 rounded-3xl">
+      <DialogContent
+        className="sm:max-w-lg p-0 overflow-hidden border-2 border-slate-300 !bg-white !text-black shadow-2xl rounded-3xl"
+        style={{ colorScheme: "light" }}
+      >
         {/* Subtle Ambient Mesh & Gradient Glow */}
         <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-emerald-500/15 via-teal-500/5 to-transparent pointer-events-none" />
         <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
@@ -215,7 +218,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
               {/* Google OAuth Option */}
               <div className="space-y-3 pt-1">
                 <GoogleButton
-                  className="w-full justify-center gap-3 cursor-pointer h-11 rounded-xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/40 text-slate-900 font-extrabold transition-all shadow-xs hover:shadow-md"
+                  className="w-full justify-center gap-3 cursor-pointer h-11 rounded-xl border-2 border-slate-300 !bg-white hover:!bg-slate-100 !text-black hover:!text-black font-extrabold transition-all shadow-xs hover:shadow-sm"
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                 />
@@ -229,18 +232,18 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
 
               {/* Tabs for Login vs Register */}
               <Tabs value={tab} onValueChange={setTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 h-11">
+                <TabsList className="grid w-full grid-cols-2 p-1.5 bg-slate-200/90 rounded-2xl border-2 border-slate-300 h-12">
                   <TabsTrigger
                     value="login"
-                    className="rounded-xl font-extrabold text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
+                    className="rounded-xl font-black text-xs transition-all cursor-pointer !text-slate-800 hover:!text-black hover:!bg-slate-300/80 data-[state=active]:!bg-black data-[state=active]:!text-white data-[state=active]:!shadow-md"
                   >
                     Sign In
                   </TabsTrigger>
                   <TabsTrigger
                     value="register"
-                    className="rounded-xl font-extrabold text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
+                    className="rounded-xl font-black text-xs transition-all cursor-pointer !text-slate-800 hover:!text-black hover:!bg-slate-300/80 data-[state=active]:!bg-black data-[state=active]:!text-white data-[state=active]:!shadow-md"
                   >
-                    Create Account
+                    Sign Up
                   </TabsTrigger>
                 </TabsList>
 
@@ -285,7 +288,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                       />
                       <Button
                         type="submit"
-                        className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer mt-2"
+                        className="w-full h-12 rounded-xl !bg-black hover:!bg-slate-800 !text-white font-extrabold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer mt-2"
                         disabled={loginForm.formState.isSubmitting}
                       >
                         {loginForm.formState.isSubmitting ? (
@@ -293,7 +296,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                         ) : (
                           <Lock className="mr-2 h-4 w-4" />
                         )}
-                        Sign In to Dashboard
+                        Sign In
                       </Button>
                     </form>
                   </Form>
@@ -424,7 +427,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                       </div>
                       <Button
                         type="submit"
-                        className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer mt-2"
+                        className="w-full h-12 rounded-xl !bg-black hover:!bg-slate-800 !text-white font-extrabold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer mt-2"
                         disabled={registerForm.formState.isSubmitting}
                       >
                         {registerForm.formState.isSubmitting ? (
@@ -432,7 +435,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDia
                         ) : (
                           <Building2 className="mr-2 h-4 w-4" />
                         )}
-                        Complete Registration
+                        Sign Up
                       </Button>
                     </form>
                   </Form>

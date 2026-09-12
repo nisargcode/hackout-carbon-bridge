@@ -94,13 +94,13 @@ export default function LandingPage() {
             <Button
               variant="ghost"
               onClick={openLogin}
-              className="font-bold text-slate-900 hover:text-black hover:bg-slate-100 px-4 cursor-pointer"
+              className="font-bold !text-slate-900 hover:!text-black hover:!bg-slate-200 px-4 cursor-pointer"
             >
               Login
             </Button>
             <Button
               onClick={openRegister}
-              className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 px-5 cursor-pointer"
+              className="font-bold bg-emerald-600 hover:bg-emerald-700 !text-white rounded-xl shadow-md shadow-emerald-600/20 px-5 cursor-pointer"
             >
               Sign Up
             </Button>
@@ -130,7 +130,7 @@ export default function LandingPage() {
             <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center">
               <Button
                 size="lg"
-                className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-9 text-base shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/35 hover:-translate-y-0.5 transition-all cursor-pointer h-13"
+                className="rounded-full bg-emerald-600 hover:bg-emerald-700 !text-white font-extrabold px-9 text-base shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/35 hover:-translate-y-0.5 transition-all cursor-pointer h-13"
                 onClick={openRegister}
               >
                 Get started
@@ -138,7 +138,7 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full border-2 border-slate-300 hover:border-black font-bold px-8 text-base text-black hover:bg-slate-100 hover:-translate-y-0.5 transition-all cursor-pointer h-13"
+                className="rounded-full border-2 border-slate-300 hover:border-black font-bold px-8 text-base !text-black hover:!text-black hover:!bg-slate-200 hover:-translate-y-0.5 transition-all cursor-pointer h-13"
                 onClick={openLogin}
               >
                 Sign in
